@@ -134,6 +134,29 @@
             align-items: center; justify-content: center; transition: 0.15s; flex-shrink: 0;
         }
         .lib-del:hover { border-color: #ff4444; color: #ff4444; background: #1a0000; }
+
+        /* DP Slider */
+        .dp-wrap { margin-top: 15px; }
+        .dp-header { display: flex; justify-content: space-between; align-items: center; }
+        .dp-label { color: #555; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dp-value { font-family: monospace; font-size: 11px; color: #00ff88; }
+        input[type=range] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 2px; background: #222; border-radius: 2px;
+            outline: none; margin-top: 10px; cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #00ff88; cursor: pointer; border: 2px solid #000;
+            box-shadow: 0 0 6px rgba(0,255,136,0.4);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #00ff88; cursor: pointer; border: 2px solid #000;
+        }
+        .dp-ticks { display: flex; justify-content: space-between; margin-top: 4px; }
+        .dp-tick { font-size: 8px; color: #333; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -219,6 +242,19 @@
         <input type="number" id="dist" placeholder="0.00" oninput="c()">
     </div>
 
+    <div class="dp-wrap">
+        <div class="dp-header">
+            <span class="dp-label">Rounding Precision</span>
+            <span class="dp-value"><span id="dpVal">2</span> dp</span>
+        </div>
+        <input type="range" id="dpSlider" min="2" max="8" value="2" step="1" oninput="updateDp(); c();">
+        <div class="dp-ticks">
+            <span class="dp-tick">2</span><span class="dp-tick">3</span><span class="dp-tick">4</span>
+            <span class="dp-tick">5</span><span class="dp-tick">6</span><span class="dp-tick">7</span>
+            <span class="dp-tick">8</span>
+        </div>
+    </div>
+
     <div class="res-container" onclick="copySize()">
         <span class="copy-tag" id="copyText">TAP TO COPY</span>
         <span class="lot-label">CALCULATED VOLUME</span>
@@ -239,7 +275,7 @@
 </div>
 
 <script>
-const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit'];
+const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit', 'dpSlider'];
 const selectState = { riskModeSelect: 'fixed', inputModeSelect: 'price' };
 
 let history = JSON.parse(localStorage.getItem('tradeHistory') || "[]");
@@ -289,7 +325,8 @@ window.onload = () => {
     const savedInput = localStorage.getItem('inputModeSelect');
     if (savedRisk) setDropdown('riskModeSelect', savedRisk);
     if (savedInput) setDropdown('inputModeSelect', savedInput);
-    toggleRisk(); toggleInput(); renderHistory(); c();
+    toggleRisk(); toggleInput(); renderHistory();
+    updateDp(); c();
 };
 
 function copySize() {
@@ -393,19 +430,21 @@ function c() {
         : Math.abs((parseFloat(document.getElementById('entry').value) || 0) - (parseFloat(document.getElementById('exit').value) || 0));
 
     if (dist > 0 && targetRisk > 0 && mult > 0) {
+        const dp = parseInt(document.getElementById('dpSlider').value);
+        const factor = Math.pow(10, dp);
         const exactSize = targetRisk / (dist * mult);
-        const roundedUpSize = Math.ceil(exactSize * 100) / 100;
+        const roundedUpSize = Math.ceil(exactSize * factor) / factor;
         const realRisk = (roundedUpSize * dist * mult).toFixed(2);
 
-        document.getElementById('pos').innerText = roundedUpSize.toFixed(2);
+        document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
         document.getElementById('actual').innerText = "$" + realRisk;
 
         clearTimeout(timeout);
         timeout = setTimeout(() => {
             if (roundedUpSize > 0) {
                 const latest = history[0];
-                if (!latest || latest.size !== roundedUpSize.toFixed(2) || latest.sym !== symbol) {
-                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(2), risk: realRisk, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
+                if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
+                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
                     history = history.slice(0, 10);
                     localStorage.setItem('tradeHistory', JSON.stringify(history));
                     renderHistory();
@@ -414,6 +453,11 @@ function c() {
             }
         }, 1500);
     }
+}
+
+function updateDp() {
+    const dp = parseInt(document.getElementById('dpSlider').value);
+    document.getElementById('dpVal').innerText = dp;
 }
 
 function toggleInfo() { document.getElementById('info-panel').classList.toggle('hidden'); }
