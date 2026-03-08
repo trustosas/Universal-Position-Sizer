@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Universal Position Sizer</title>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', monospace; display: flex; justify-content: center; margin: 0; padding: 15px; }
+        .box { width: 100%; max-width: 380px; background: #0d0d0d; padding: 20px; border: 1px solid #1a1a1a; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; }
+        h2 { margin: 0; font-size: 10px; color: #444; letter-spacing: 1.5px; text-transform: uppercase; }
+        .btn-group { display: flex; gap: 8px; }
+        .btn { background: #1a1a1a; color: #666; border: 1px solid #333; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .btn:active { background: #00ff88; color: #000; }
+
+        label { color: #555; font-size: 9px; display: block; margin-top: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        input {
+            width: 100%; padding: 12px; background: #050505; border: 1px solid #222; color: #00ff88;
+            font-size: 1.1rem; border-radius: 6px; font-family: monospace; margin-top: 4px;
+        }
+        input:focus { border-color: #00ff88; outline: none; box-shadow: 0 0 10px rgba(0,255,136,0.05); }
+
+        /* Custom Dropdown */
+        .custom-select { position: relative; margin-top: 4px; }
+        .custom-select-trigger {
+            width: 100%; padding: 12px; background: #050505; border: 1px solid #222; color: #00ff88;
+            font-size: 1.1rem; border-radius: 6px; font-family: monospace; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            user-select: none; transition: border-color 0.15s;
+        }
+        .custom-select.open .custom-select-trigger {
+            border-color: #00ff88; box-shadow: 0 0 10px rgba(0,255,136,0.05);
+            border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+        }
+        .custom-select-chevron {
+            font-size: 10px; color: #00ff88; transition: transform 0.2s ease; flex-shrink: 0; margin-left: 8px;
+        }
+        .custom-select.open .custom-select-chevron { transform: rotate(180deg); }
+        .custom-select-options {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: #050505; border: 1px solid #00ff88; border-top: none;
+            border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+            z-index: 100; overflow: hidden;
+            max-height: 0; opacity: 0; pointer-events: none;
+            transition: max-height 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.15s ease;
+        }
+        .custom-select.open .custom-select-options {
+            max-height: 200px; opacity: 1; pointer-events: all;
+        }
+        .custom-select-option {
+            padding: 12px; font-family: monospace; font-size: 1rem; color: #444;
+            cursor: pointer; border-top: 1px solid #111; transition: background 0.1s, color 0.1s;
+        }
+        .custom-select-option:hover { background: #0f0f0f; color: #00ff88; }
+        .custom-select-option.selected { color: #00ff88; }
+
+        #suggestions { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; scrollbar-width: none; }
+        .sug-pill { background: #1a1a1a; color: #00ff88; border: 1px solid #222; padding: 6px 12px; border-radius: 20px; font-size: 10px; cursor: pointer; white-space: nowrap; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .res-container {
+            margin-top: 25px; padding: 20px; background: linear-gradient(145deg, #0a0a0a, #111);
+            border: 1px solid #222; border-top: 3px solid #00ff88; border-radius: 8px;
+            position: relative; cursor: pointer; text-align: center; transition: 0.1s;
+        }
+        .res-container:active { transform: scale(0.98); background: #050505; }
+        .lot-label { font-size: 10px; color: #444; margin-bottom: 5px; display: block; font-weight: bold; }
+        .val { display: block; font-size: 3rem; font-weight: 800; color: #00ff88; line-height: 1; letter-spacing: -1px; }
+        .risk-stat { margin-top: 12px; font-size: 12px; color: #666; border-top: 1px solid #1a1a1a; padding-top: 10px; }
+        .risk-stat b { color: #ff4444; }
+        .copy-tag { position: absolute; top: 8px; right: 12px; font-size: 8px; color: #222; font-weight: bold; }
+
+        .history-section { margin-top: 20px; border-radius: 8px; background: #080808; border: 1px solid #1a1a1a; overflow: hidden; }
+        .history-trigger { padding: 12px; font-size: 11px; cursor: pointer; display: flex; justify-content: space-between; color: #444; font-weight: bold; }
+        #hist-list { max-height: 0; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        #hist-list.open { max-height: 300px; overflow-y: auto; }
+        .hist-item { font-size: 11px; color: #555; padding: 12px; border-top: 1px solid #151515; display: flex; justify-content: space-between; align-items: center; }
+        .hist-item b { color: #888; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <div class="header">
+        <h2>Universal Position Sizer</h2>
+        <div class="btn-group">
+            <button class="btn" style="color:#ffa500" onclick="clearInputs()">Reset</button>
+            <button class="btn" onclick="toggleInfo()">Help</button>
+        </div>
+    </div>
+
+    <div id="info-panel" class="hidden" style="background: #1a1a1a; padding: 12px; font-size: 10px; color: #666; border-radius: 6px; margin-bottom: 15px; line-height: 1.8;">
+        <span style="color:#00ff88; font-weight:bold;">FINDING CONTRACT SIZE IN MT5</span><br>
+        1. Open MT5 → View → Symbols<br>
+        2. Search your instrument (e.g. GBPUSD)<br>
+        3. Select it → Properties / Specification<br>
+        4. Look for <span style="color:#aaa;">Contract Size</span> — enter that value here.<br><br>
+        <span style="color:#00ff88; font-weight:bold;">USAGE</span><br>
+        · Tap result box to copy lot size.<br>
+        · Lot size is rounded <span style="color:#aaa;">up</span> to 2dp.
+    </div>
+
+    <label>Instrument</label>
+    <input type="text" id="symbol" placeholder="BTCUSD" oninput="showSuggestions(); c();" autocomplete="off">
+    <div id="suggestions"></div>
+
+    <div class="grid">
+        <div>
+            <label>Contract Size</label>
+            <input type="number" id="mult" value="1" oninput="saveSymbol(); c();">
+        </div>
+        <div>
+            <label>Risk Mode</label>
+            <div class="custom-select" id="riskModeSelect">
+                <div class="custom-select-trigger" onclick="toggleDropdown('riskModeSelect')">
+                    <span id="riskModeLabel">USD Amount</span>
+                    <span class="custom-select-chevron">▼</span>
+                </div>
+                <div class="custom-select-options">
+                    <div class="custom-select-option selected" data-value="fixed" onclick="selectOption('riskModeSelect','fixed','USD Amount',this)">USD Amount</div>
+                    <div class="custom-select-option" data-value="percent" onclick="selectOption('riskModeSelect','percent','% of Balance',this)">% of Balance</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="fixed-risk-wrap">
+        <label>Risk Amount ($)</label>
+        <input type="number" id="cashRisk" value="20.48" oninput="c()">
+    </div>
+
+    <div id="percent-risk-wrap" class="hidden">
+        <div class="grid">
+            <div><label>Balance</label><input type="number" id="balance" value="10000" oninput="c()"></div>
+            <div><label>Risk %</label><input type="number" id="pct" value="1" step="0.1" oninput="c()"></div>
+        </div>
+    </div>
+
+    <label>Input Mode</label>
+    <div class="custom-select" id="inputModeSelect">
+        <div class="custom-select-trigger" onclick="toggleDropdown('inputModeSelect')">
+            <span id="inputModeLabel">Entry / Stop Loss</span>
+            <span class="custom-select-chevron">▼</span>
+        </div>
+        <div class="custom-select-options">
+            <div class="custom-select-option selected" data-value="price" onclick="selectOption('inputModeSelect','price','Entry / Stop Loss',this)">Entry / Stop Loss</div>
+            <div class="custom-select-option" data-value="dist" onclick="selectOption('inputModeSelect','dist','Point Distance',this)">Point Distance</div>
+        </div>
+    </div>
+
+    <div id="price-wrap">
+        <div class="grid">
+            <div><label>Entry</label><input type="number" id="entry" oninput="c()"></div>
+            <div><label>Stop Loss</label><input type="number" id="exit" oninput="c()"></div>
+        </div>
+    </div>
+
+    <div id="dist-wrap" class="hidden">
+        <label>Points Distance</label>
+        <input type="number" id="dist" placeholder="0.00" oninput="c()">
+    </div>
+
+    <div class="res-container" onclick="copySize()">
+        <span class="copy-tag" id="copyText">TAP TO COPY</span>
+        <span class="lot-label">CALCULATED VOLUME</span>
+        <span class="val" id="pos">0.00</span>
+        <div class="risk-stat">
+            EST. FIAT RISK: <b id="actual">$0.00</b>
+        </div>
+    </div>
+
+    <div class="history-section">
+        <div class="history-trigger" onclick="toggleHistory()">
+            <span>HISTORY LOG</span>
+            <span id="hist-arrow">▼</span>
+        </div>
+        <div id="hist-list"></div>
+        <button class="btn" style="width:100%; border-radius:0; border:none; border-top:1px solid #1a1a1a; color:#ff4444; padding: 12px;" onclick="clearHistory()">Wipe Log</button>
+    </div>
+</div>
+
+<script>
+const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit'];
+const selectState = { riskModeSelect: 'fixed', inputModeSelect: 'price' };
+
+let history = JSON.parse(localStorage.getItem('tradeHistory') || "[]");
+let lib = JSON.parse(localStorage.getItem('symbolLib') || "{}");
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.custom-select')) {
+        document.querySelectorAll('.custom-select.open').forEach(el => el.classList.remove('open'));
+    }
+});
+
+function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.custom-select.open').forEach(d => d.classList.remove('open'));
+    if (!isOpen) el.classList.add('open');
+}
+
+function selectOption(selectId, value, label, optionEl) {
+    selectState[selectId] = value;
+    document.getElementById(selectId).querySelector('.custom-select-trigger span').innerText = label;
+    document.querySelectorAll(`#${selectId} .custom-select-option`).forEach(o => o.classList.remove('selected'));
+    optionEl.classList.add('selected');
+    document.getElementById(selectId).classList.remove('open');
+    localStorage.setItem(selectId, value);
+    if (selectId === 'riskModeSelect') toggleRisk();
+    if (selectId === 'inputModeSelect') toggleInput();
+    c();
+}
+
+function setDropdown(selectId, value) {
+    const el = document.getElementById(selectId);
+    const option = el.querySelector(`[data-value="${value}"]`);
+    if (!option) return;
+    selectState[selectId] = value;
+    el.querySelector('.custom-select-trigger span').innerText = option.innerText;
+    el.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+}
+
+window.onload = () => {
+    inputFields.forEach(f => {
+        const saved = localStorage.getItem(f);
+        if (saved !== null && saved !== "") document.getElementById(f).value = saved;
+    });
+    const savedRisk = localStorage.getItem('riskModeSelect');
+    const savedInput = localStorage.getItem('inputModeSelect');
+    if (savedRisk) setDropdown('riskModeSelect', savedRisk);
+    if (savedInput) setDropdown('inputModeSelect', savedInput);
+    toggleRisk(); toggleInput(); renderHistory(); c();
+};
+
+function copySize() {
+    const val = document.getElementById('pos').innerText;
+    navigator.clipboard.writeText(val);
+    const hint = document.getElementById('copyText');
+    hint.innerText = "COPIED!";
+    hint.style.color = "#00ff88";
+    setTimeout(() => { hint.innerText = "TAP TO COPY"; hint.style.color = "#222"; }, 1500);
+}
+
+function showSuggestions() {
+    const input = document.getElementById('symbol').value.toUpperCase();
+    const sugBox = document.getElementById('suggestions');
+    sugBox.innerHTML = '';
+    if (input.length > 0) {
+        Object.keys(lib).forEach(s => {
+            if (s.includes(input)) {
+                const pill = document.createElement('div');
+                pill.className = 'sug-pill';
+                pill.innerText = s;
+                pill.onclick = () => { document.getElementById('symbol').value = s; document.getElementById('mult').value = lib[s]; sugBox.innerHTML = ''; c(); };
+                sugBox.appendChild(pill);
+            }
+        });
+    }
+}
+
+function saveSymbol() {
+    const s = document.getElementById('symbol').value.toUpperCase();
+    const m = document.getElementById('mult').value;
+    if (s && m) { lib[s] = m; localStorage.setItem('symbolLib', JSON.stringify(lib)); }
+}
+
+function toggleHistory() {
+    const list = document.getElementById('hist-list');
+    list.classList.toggle('open');
+    document.getElementById('hist-arrow').innerText = list.classList.contains('open') ? '▲' : '▼';
+}
+
+function clearInputs() {
+    inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.removeItem(id); });
+    setDropdown('riskModeSelect', 'fixed'); selectState.riskModeSelect = 'fixed'; localStorage.removeItem('riskModeSelect');
+    setDropdown('inputModeSelect', 'price'); selectState.inputModeSelect = 'price'; localStorage.removeItem('inputModeSelect');
+    document.getElementById('pos').innerText = '0.00';
+    document.getElementById('actual').innerText = '$0.00';
+    toggleRisk(); toggleInput();
+}
+
+function clearHistory() { if(confirm("Wipe history?")) { history = []; localStorage.setItem('tradeHistory', JSON.stringify(history)); renderHistory(); } }
+
+function toggleRisk() {
+    const mode = selectState.riskModeSelect;
+    document.getElementById('fixed-risk-wrap').style.display = (mode === 'fixed') ? 'block' : 'none';
+    document.getElementById('percent-risk-wrap').style.display = (mode === 'percent') ? 'block' : 'none';
+}
+
+function toggleInput() {
+    const mode = selectState.inputModeSelect;
+    document.getElementById('price-wrap').style.display = (mode === 'price') ? 'block' : 'none';
+    document.getElementById('dist-wrap').style.display = (mode === 'dist') ? 'block' : 'none';
+}
+
+function renderHistory() {
+    const list = document.getElementById('hist-list');
+    list.innerHTML = '';
+    history.forEach((h, i) => {
+        const div = document.createElement('div');
+        div.className = 'hist-item';
+        div.onclick = () => loadHistory(i);
+        div.innerHTML = `<span><b>${h.sym || '??'}</b>: ${h.size}</span> <span>$${h.risk}</span>`;
+        list.appendChild(div);
+    });
+}
+
+function loadHistory(i) {
+    const item = history[i];
+    document.getElementById('symbol').value = item.sym;
+    document.getElementById('mult').value = item.m;
+    setDropdown('riskModeSelect', item.rm); selectState.riskModeSelect = item.rm;
+    if (item.rm === 'fixed') document.getElementById('cashRisk').value = item.cr;
+    else { document.getElementById('balance').value = item.bal; document.getElementById('pct').value = item.p; }
+    setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
+    if (item.im === 'dist') document.getElementById('dist').value = item.d;
+    else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; }
+    toggleRisk(); toggleInput(); c();
+}
+
+let timeout;
+function c() {
+    const mult = parseFloat(document.getElementById('mult').value) || 0;
+    const symbol = document.getElementById('symbol').value.toUpperCase();
+    inputFields.forEach(f => localStorage.setItem(f, document.getElementById(f).value));
+
+    let targetRisk = (selectState.riskModeSelect === 'fixed')
+        ? parseFloat(document.getElementById('cashRisk').value) || 0
+        : (parseFloat(document.getElementById('balance').value) || 0) * (parseFloat(document.getElementById('pct').value) || 0) / 100;
+
+    let dist = (selectState.inputModeSelect === 'dist')
+        ? parseFloat(document.getElementById('dist').value) || 0
+        : Math.abs((parseFloat(document.getElementById('entry').value) || 0) - (parseFloat(document.getElementById('exit').value) || 0));
+
+    if (dist > 0 && targetRisk > 0 && mult > 0) {
+        const exactSize = targetRisk / (dist * mult);
+        const roundedUpSize = Math.ceil(exactSize * 100) / 100;
+        const realRisk = (roundedUpSize * dist * mult).toFixed(2);
+
+        document.getElementById('pos').innerText = roundedUpSize.toFixed(2);
+        document.getElementById('actual').innerText = "$" + realRisk;
+
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            if (roundedUpSize > 0) {
+                const latest = history[0];
+                if (!latest || latest.size !== roundedUpSize.toFixed(2) || latest.sym !== symbol) {
+                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(2), risk: realRisk, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
+                    history = history.slice(0, 10);
+                    localStorage.setItem('tradeHistory', JSON.stringify(history));
+                    renderHistory();
+                    saveSymbol();
+                }
+            }
+        }, 1500);
+    }
+}
+
+function toggleInfo() { document.getElementById('info-panel').classList.toggle('hidden'); }
+</script>
+</body>
+</html>
