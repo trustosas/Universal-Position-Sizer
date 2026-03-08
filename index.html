@@ -179,7 +179,7 @@
         4. Look for <span style="color:#aaa;">Contract Size</span> — enter that value here.<br><br>
         <span style="color:#00ff88; font-weight:bold;">USAGE</span><br>
         · Tap result box to copy lot size.<br>
-        · Lot size is rounded <span style="color:#aaa;">up</span> to 2dp.
+        · Lot size is rounded <span style="color:#aaa;">up</span> to 2dp by default.
     </div>
 
     <label>Instrument</label>
@@ -247,7 +247,7 @@
             <span class="dp-label">Rounding Precision</span>
             <span class="dp-value"><span id="dpVal">2</span> dp</span>
         </div>
-        <input type="range" id="dpSlider" min="2" max="8" value="2" step="1" oninput="updateDp(); c();">
+        <input type="range" id="dpSlider" min="2" max="8" value="2" step="1" oninput="updateDp(); c(true);">
         <div class="dp-ticks">
             <span class="dp-tick">2</span><span class="dp-tick">3</span><span class="dp-tick">4</span>
             <span class="dp-tick">5</span><span class="dp-tick">6</span><span class="dp-tick">7</span>
@@ -416,7 +416,7 @@ function loadHistory(i) {
 }
 
 let timeout;
-function c() {
+function c(skipHistory = false) {
     const mult = parseFloat(document.getElementById('mult').value) || 0;
     const symbol = document.getElementById('symbol').value.toUpperCase();
     inputFields.forEach(f => localStorage.setItem(f, document.getElementById(f).value));
@@ -440,7 +440,7 @@ function c() {
         document.getElementById('actual').innerText = "$" + realRisk;
 
         clearTimeout(timeout);
-        timeout = setTimeout(() => {
+        if (!skipHistory) timeout = setTimeout(() => {
             if (roundedUpSize > 0) {
                 const latest = history[0];
                 if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
