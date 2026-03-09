@@ -187,7 +187,7 @@
         4. Look for <span style="color:#aaa;">Contract Size</span> — enter that value here.<br><br>
         <span style="color:#00ff88; font-weight:bold;">USAGE</span><br>
         · Tap result box to copy lot size.<br>
-        · Lot size is rounded <span style="color:#aaa;">up</span> to 2dp by default.
+        · Lot size is rounded to 2dp by default.
     </div>
 
     <label>Instrument</label>
@@ -507,7 +507,7 @@ function c(skipHistory = false) {
         const dp = parseInt(document.getElementById('dpSlider').value);
         const factor = Math.pow(10, dp);
         const exactSize = targetRisk / (dist * mult * fxRate);
-        const roundedUpSize = Math.ceil(exactSize * factor) / factor;
+        const roundedUpSize = Math.round(exactSize * factor) / factor;
         const realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
 
         document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
