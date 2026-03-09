@@ -763,9 +763,16 @@ function loadHistory(i) {
     if (item.rm === 'fixed') document.getElementById('cashRisk').value = item.cr;
     else { document.getElementById('balance').value = item.bal; document.getElementById('pct').value = item.p; }
     setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
-    if (item.im === 'dist') { document.getElementById('dist').value = item.d; document.getElementById('rr').value = item.rr || ''; }
-    else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; document.getElementById('tp').value = item.tp || ''; }
-    if (item.dp) { document.getElementById('dpSlider').value = item.dp; updateDp(); }
+    if (item.im === 'dist') {
+        document.getElementById('dist').value = item.d || '';
+        document.getElementById('rr').value = item.rr || '';
+    } else {
+        document.getElementById('entry').value = item.en || '';
+        document.getElementById('exit').value = item.ex || '';
+        document.getElementById('tp').value = item.tp || '';
+    }
+    document.getElementById('dpSlider').value = item.dp || 2;
+    updateDp();
     toggleRisk(); toggleInput(); fetchRate();
 }
 
