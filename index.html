@@ -114,6 +114,45 @@
 
         .hidden { display: none; }
 
+        /* View In converter */
+        .view-in-wrap {
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid #1a1a1a;
+            display: none;
+        }
+        .view-in-wrap.active { display: block; }
+        .view-in-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .view-in-label { font-size: 9px; color: #444; font-family: monospace; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
+        .view-in-select-wrap { position: relative; flex-shrink: 0; }
+        .view-in-trigger {
+            background: #0a0a0a; border: 1px solid #222; color: #555;
+            font-family: monospace; font-size: 10px; padding: 5px 10px;
+            border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: border-color 0.15s;
+        }
+        .view-in-trigger:hover, .view-in-wrap .vdd-open .view-in-trigger { border-color: #00ff88; color: #00ff88; }
+        .view-in-options {
+            position: absolute; right: 0; bottom: calc(100% + 4px);
+            background: #050505; border: 1px solid #00ff88;
+            border-radius: 6px; z-index: 200; width: 220px;
+            max-height: 200px; overflow: hidden; display: none;
+        }
+        .view-in-search {
+            width: 100%; padding: 8px 10px; background: #050505; border: none;
+            border-bottom: 1px solid #222; color: #00ff88; font-family: monospace;
+            font-size: 11px; outline: none;
+        }
+        .view-in-list { max-height: 155px; overflow-y: auto; }
+        .view-in-option {
+            padding: 8px 12px; font-family: monospace; font-size: 11px; color: #444;
+            cursor: pointer; border-top: 1px solid #111;
+        }
+        .view-in-option:hover { background: #0f0f0f; color: #00ff88; }
+        .view-in-option.selected { color: #00ff88; }
+        .view-in-values { font-family: monospace; font-size: 11px; color: #555; text-align: right; }
+        .view-in-values .viv-risk { color: #ff6666; }
+        .view-in-values .viv-profit { color: #00cc66; }
+        .view-in-loading { font-size: 9px; color: #333; font-family: monospace; }
+
         /* Manage Modal */
         .modal-overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
@@ -306,6 +345,22 @@
         <div class="risk-stat">
             <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
             <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
+            <div class="view-in-wrap" id="viewInWrap">
+                <div class="view-in-row">
+                    <span class="view-in-label">VIEW IN</span>
+                    <div class="view-in-values" id="viewInValues"><span class="view-in-loading" id="viewInLoading"></span></div>
+                    <div class="view-in-select-wrap" id="viewInSelectWrap">
+                        <div class="view-in-trigger" onclick="toggleViewInDropdown()">
+                            <span id="viewInCcyLabel">—</span>
+                            <span style="font-size:8px; color:#444;">▼</span>
+                        </div>
+                        <div class="view-in-options" id="viewInOptions">
+                            <input type="text" class="view-in-search" id="viewInSearch" placeholder="Search..." oninput="filterViewIn()">
+                            <div class="view-in-list" id="viewInList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -538,6 +593,7 @@ async function fetchRate(force = false) {
         indicator.className = 'fx-rate error';
         indicator.innerText = `FX ERROR: ${e.message}`;
     }
+    if (viewInCcy) fetchViewInRate().then(updateViewInDisplay);
     c();
 }
 document.addEventListener('click', e => {
@@ -546,6 +602,9 @@ document.addEventListener('click', e => {
     }
     if (!e.target.closest('#ccySearchWrap')) {
         closeCcyDropdown();
+    }
+    if (!e.target.closest('#viewInSelectWrap')) {
+        closeViewInDropdown();
     }
 });
 
@@ -588,7 +647,7 @@ window.onload = () => {
     if (savedRisk) setDropdown('riskModeSelect', savedRisk);
     if (savedInput) setDropdown('inputModeSelect', savedInput);
     toggleRisk(); toggleInput(); renderHistory();
-    updateDp(); updateCcyDisplay(); fetchRate();
+    updateDp(); updateCcyDisplay(); fetchRate(); if (currencyList.length === 0) loadCurrencyList(); setTimeout(initViewIn, 50);
 };
 
 function copySize() {
@@ -666,7 +725,7 @@ function renderHistory() {
         div.style.gap = '8px';
         div.innerHTML = `
             <span style="flex:1; cursor:pointer;" onclick="loadHistory(${i}); closeHistory();">
-                <b>${h.sym || '??'}</b>: ${h.size} <span style="color:#444;">$${h.risk}</span>
+                <b>${h.sym || '??'}</b>: ${h.size} <span style="color:#444;">${h.ccy || '$'}${h.risk}</span>
             </span>
             <button onclick="deleteHistory(${i})" style="background:none; border:1px solid #222; color:#444; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:12px; flex-shrink:0; transition:0.15s;" onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'" onmouseout="this.style.borderColor='#222';this.style.color='#444'">✕</button>
         `;
@@ -684,6 +743,14 @@ function loadHistory(i) {
     setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
     if (item.im === 'dist') document.getElementById('dist').value = item.d;
     else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; }
+    if (item.accy && item.accy !== accountCcy) {
+        accountCcy = item.accy;
+        localStorage.setItem('accountCcy', accountCcy);
+        fxCache = {};
+        viewInCache = {};
+        updateCcyDisplay();
+        updateCcyBadge();
+    }
     toggleRisk(); toggleInput(); fetchRate();
 }
 
@@ -736,13 +803,14 @@ function c(skipHistory = false) {
         } else {
             document.getElementById('profitWrap').style.display = 'none';
         }
+        updateViewInDisplay();
 
         clearTimeout(timeout);
         if (!skipHistory) timeout = setTimeout(() => {
             if (roundedUpSize > 0) {
                 const latest = history[0];
                 if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
-                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
+                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
                     history = history.slice(0, 10);
                     localStorage.setItem('tradeHistory', JSON.stringify(history));
                     renderHistory();
@@ -759,6 +827,117 @@ function updateDp() {
 }
 
 function toggleInfo() { document.getElementById('info-panel').classList.toggle('hidden'); }
+
+// ── View In Converter ──────────────────────────────────────────
+let viewInCcy = localStorage.getItem('viewInCcy') || '';
+let viewInRate = null;
+let viewInCache = {};
+
+function initViewIn() {
+    renderViewInList('');
+    if (viewInCcy) {
+        document.getElementById('viewInCcyLabel').innerText = viewInCcy;
+        document.getElementById('viewInCcyLabel').style.color = '#00ff88';
+        document.getElementById('viewInWrap').classList.add('active');
+    }
+}
+
+function renderViewInList(filter) {
+    const list = document.getElementById('viewInList');
+    const f = filter.toUpperCase();
+    const filtered = f
+        ? currencyList.filter(c => c.code.includes(f) || (c.name||'').toUpperCase().includes(f))
+        : currencyList;
+    list.innerHTML = filtered.slice(0, 80).map(c =>
+        `<div class="view-in-option${c.code === viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('${c.code}')">${c.code} — ${c.name}</div>`
+    ).join('');
+}
+
+function filterViewIn() {
+    renderViewInList(document.getElementById('viewInSearch').value);
+}
+
+function toggleViewInDropdown() {
+    const opts = document.getElementById('viewInOptions');
+    const isOpen = opts.style.display === 'block';
+    // close all other dropdowns
+    document.querySelectorAll('.custom-select.open').forEach(el => el.classList.remove('open'));
+    opts.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) {
+        document.getElementById('viewInSearch').value = '';
+        renderViewInList('');
+        setTimeout(() => document.getElementById('viewInSearch').focus(), 50);
+    }
+}
+
+function closeViewInDropdown() {
+    document.getElementById('viewInOptions').style.display = 'none';
+}
+
+async function selectViewInCcy(code) {
+    viewInCcy = code;
+    localStorage.setItem('viewInCcy', code);
+    document.getElementById('viewInCcyLabel').innerText = code;
+    document.getElementById('viewInCcyLabel').style.color = '#00ff88';
+    document.getElementById('viewInWrap').classList.add('active');
+    closeViewInDropdown();
+    renderViewInList('');
+    await fetchViewInRate();
+    updateViewInDisplay();
+}
+
+async function fetchViewInRate() {
+    if (!viewInCcy) return;
+    const from = accountCcy;
+    const to = viewInCcy;
+    if (from === to) { viewInRate = 1; return; }
+    const key = `${from}/${to}`;
+    const cached = viewInCache[key];
+    if (cached && (Date.now() - cached.ts < FX_TTL)) { viewInRate = cached.rate; return; }
+    const apiKey = getTwelveDataKey();
+    if (!apiKey) { viewInRate = null; return; }
+    try {
+        const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=${from}/${to}&apikey=${apiKey}`);
+        const data = await res.json();
+        if (data.status === 'error' || !data.rate) throw new Error();
+        viewInRate = parseFloat(data.rate);
+        viewInCache[key] = { rate: viewInRate, ts: Date.now() };
+    } catch(e) { viewInRate = null; }
+}
+
+function updateViewInDisplay() {
+    const wrap = document.getElementById('viewInWrap');
+    const valEl = document.getElementById('viewInValues');
+    if (!viewInCcy || !wrap.classList.contains('active')) return;
+
+    const riskText = document.getElementById('actual').innerText;
+    const riskNum = parseFloat(riskText.replace(/[^0-9.]/g, ''));
+
+    if (!viewInRate || isNaN(riskNum) || riskNum === 0) {
+        valEl.innerHTML = '<span class="view-in-loading">—</span>';
+        return;
+    }
+
+    const sym = (() => {
+        const s = {USD:'$',EUR:'€',GBP:'£',JPY:'¥',NGN:'₦',GHS:'₵',KES:'KSh',ZAR:'R',INR:'₹',CNY:'¥',
+                   CAD:'CA$',AUD:'A$',BRL:'R$',CHF:'Fr',MXN:'MX$',SGD:'S$',HKD:'HK$',TRY:'₺',RUB:'₽',KRW:'₩'};
+        return s[viewInCcy] || viewInCcy + ' ';
+    })();
+
+    const convRisk = (riskNum * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
+    let html = `<span class="viv-risk">≈ ${sym}${convRisk}</span>`;
+
+    const profitWrap = document.getElementById('profitWrap');
+    if (profitWrap && profitWrap.style.display !== 'none') {
+        const profitText = document.getElementById('estProfit').innerText;
+        const profitNum = parseFloat(profitText.replace(/[^0-9.]/g, ''));
+        if (!isNaN(profitNum) && profitNum > 0) {
+            const convProfit = (profitNum * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
+            html += ` <span style="color:#333">·</span> <span class="viv-profit">≈ ${sym}${convProfit}</span>`;
+        }
+    }
+    valEl.innerHTML = html;
+}
 
 function openManage() {
     document.getElementById('apiKeyInput').value = getTwelveDataKey();
