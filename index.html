@@ -67,6 +67,33 @@
         .fx-refresh { background: none; border: none; color: #333; font-size: 9px; cursor: pointer; padding: 0; font-family: monospace; text-transform: uppercase; }
         .fx-refresh:hover { color: #00ff88; }
 
+        /* Currency Search */
+        .ccy-search-wrap { position: relative; }
+        .ccy-search-input {
+            width: 100%; padding: 10px; background: #050505; border: 1px solid #222; color: #00ff88;
+            font-size: 0.95rem; border-radius: 6px; font-family: monospace; margin-top: 4px;
+        }
+        .ccy-search-input:focus { border-color: #00ff88; outline: none; }
+        .ccy-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: #050505; border: 1px solid #00ff88; border-top: none;
+            border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+            max-height: 180px; overflow-y: auto; z-index: 200;
+            display: none;
+        }
+        .ccy-dropdown.open { display: block; }
+        .ccy-option {
+            padding: 10px 12px; font-family: monospace; font-size: 0.9rem; color: #555;
+            cursor: pointer; border-top: 1px solid #111;
+        }
+        .ccy-option:hover { background: #0f0f0f; color: #00ff88; }
+        .ccy-option.selected { color: #00ff88; }
+        .ccy-selected-badge {
+            display: inline-block; margin-top: 6px; padding: 4px 10px;
+            background: #0a0a0a; border: 1px solid #222; border-radius: 4px;
+            font-family: monospace; font-size: 11px; color: #00ff88;
+        }
+
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
         .res-container {
@@ -293,9 +320,82 @@ let lib = JSON.parse(localStorage.getItem('symbolLib') || "{}");
 let fxRate = 1;
 let fxCache = {};
 const FX_TTL = 30 * 1000; // 30s cache
+let accountCcy = localStorage.getItem('accountCcy') || 'USD';
+let currencyList = []; // [{code, name}]
 
 function getTwelveDataKey() {
     return localStorage.getItem('twelveDataKey') || '';
+}
+
+async function loadCurrencyList() {
+    const apiKey = getTwelveDataKey();
+    if (!apiKey) return;
+    try {
+        const res = await fetch(`https://api.twelvedata.com/currencies?apikey=${apiKey}`);
+        const data = await res.json();
+        if (data.data) {
+            const seen = new Set();
+            currencyList = data.data
+                .filter(c => { if (seen.has(c.code)) return false; seen.add(c.code); return true; })
+                .sort((a, b) => a.code.localeCompare(b.code));
+            renderCurrencyList('');
+        }
+    } catch(e) {}
+}
+
+function renderCurrencyList(filter) {
+    const dropdown = document.getElementById('ccyDropdown');
+    if (!dropdown) return;
+    const f = filter.toUpperCase();
+    const filtered = f
+        ? currencyList.filter(c => c.code.includes(f) || (c.name||'').toUpperCase().includes(f))
+        : currencyList;
+    dropdown.innerHTML = filtered.slice(0, 80).map(c =>
+        `<div class="ccy-option${c.code === accountCcy ? ' selected' : ''}" onclick="selectAccountCcy('${c.code}','${(c.name||'').replace(/'/g,"\'")}')">
+            <b>${c.code}</b> — ${c.name || ''}
+        </div>`
+    ).join('');
+    updateCcyBadge();
+}
+
+function filterCurrencies() {
+    const q = document.getElementById('ccySearchInput').value;
+    openCcyDropdown();
+    renderCurrencyList(q);
+}
+
+function openCcyDropdown() {
+    document.getElementById('ccyDropdown').classList.add('open');
+}
+
+function closeCcyDropdown() {
+    document.getElementById('ccyDropdown').classList.remove('open');
+    document.getElementById('ccySearchInput').value = '';
+}
+
+function selectAccountCcy(code, name) {
+    accountCcy = code;
+    localStorage.setItem('accountCcy', code);
+    fxCache = {}; // invalidate on currency change
+    closeCcyDropdown();
+    updateCcyBadge();
+    fetchRate();
+}
+
+function updateCcyBadge() {
+    const badge = document.getElementById('ccySelectedBadge');
+    if (!badge) return;
+    const entry = currencyList.find(c => c.code === accountCcy);
+    if (entry) {
+        badge.style.color = '#00ff88';
+        badge.innerText = `✓ ${entry.code} — ${entry.name}`;
+    } else if (accountCcy) {
+        badge.style.color = '#00ff88';
+        badge.innerText = `✓ ${accountCcy}`;
+    } else {
+        badge.style.color = '#555';
+        badge.innerText = 'No currency selected';
+    }
 }
 
 function getQuoteCurrency(symbol) {
@@ -316,7 +416,7 @@ async function fetchRate(force = false) {
     const indicator = document.getElementById('fxIndicator');
     const refreshBtn = document.getElementById('fxRefresh');
 
-    if (quoteCcy === 'USD' || !symbol) {
+    if (quoteCcy === accountCcy || !symbol) {
         fxRate = 1;
         indicator.className = 'fx-rate';
         indicator.innerText = '';
@@ -339,7 +439,7 @@ async function fetchRate(force = false) {
     if (!force && cached && (Date.now() - cached.ts < FX_TTL)) {
         fxRate = cached.rate;
         indicator.className = 'fx-rate active';
-        indicator.innerText = `FX: 1 ${quoteCcy} = ${fxRate.toFixed(5)} USD`;
+        indicator.innerText = `FX: 1 ${quoteCcy} = ${fxRate.toFixed(5)} ${accountCcy}`;
         c(); return;
     }
 
@@ -347,13 +447,13 @@ async function fetchRate(force = false) {
     indicator.innerText = `FETCHING ${quoteCcy}/USD...`;
 
     try {
-        const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=${quoteCcy}/USD&apikey=${apiKey}`);
+        const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=${quoteCcy}/${accountCcy}&apikey=${apiKey}`);
         const data = await res.json();
         if (data.status === 'error' || !data.rate) throw new Error(data.message || 'No rate');
         fxRate = parseFloat(data.rate);
         fxCache[quoteCcy] = { rate: fxRate, ts: Date.now() };
         indicator.className = 'fx-rate active';
-        indicator.innerText = `FX: 1 ${quoteCcy} = ${fxRate.toFixed(5)} USD · live`;
+        indicator.innerText = `FX: 1 ${quoteCcy} = ${fxRate.toFixed(5)} ${accountCcy} · live`;
     } catch (e) {
         fxRate = 1;
         indicator.className = 'fx-rate error';
@@ -364,6 +464,9 @@ async function fetchRate(force = false) {
 document.addEventListener('click', e => {
     if (!e.target.closest('.custom-select')) {
         document.querySelectorAll('.custom-select.open').forEach(el => el.classList.remove('open'));
+    }
+    if (!e.target.closest('#ccySearchWrap')) {
+        closeCcyDropdown();
     }
 });
 
@@ -575,12 +678,15 @@ function openManage() {
     document.getElementById('apiKeyStatus').innerText = '';
     renderLib();
     document.getElementById('manageModal').classList.add('open');
+    if (currencyList.length === 0) loadCurrencyList();
+    else { renderCurrencyList(''); updateCcyBadge(); }
 }
 
 function saveApiKey() {
     const key = document.getElementById('apiKeyInput').value.trim();
     localStorage.setItem('twelveDataKey', key);
-    fxCache = {}; // invalidate cache when key changes
+    fxCache = {};
+    currencyList = [];
 }
 
 async function testApiKey() {
@@ -595,6 +701,7 @@ async function testApiKey() {
         status.style.color = '#00ff88'; status.innerText = `✓ Valid — EUR/USD = ${parseFloat(data.rate).toFixed(5)}`;
         localStorage.setItem('twelveDataKey', key);
         fxCache = {};
+        currencyList = []; loadCurrencyList();
     } catch (e) {
         status.style.color = '#ff4444'; status.innerText = `✗ ${e.message}`;
     }
@@ -672,6 +779,16 @@ function deleteInstrument(sym) {
                 <button class="modal-add-btn" style="white-space:nowrap" onclick="testApiKey()">Test</button>
             </div>
             <div id="apiKeyStatus" style="font-size:9px; font-family:monospace; color:#333; margin-top:6px; min-height:12px;"></div>
+        </div>
+        <div style="padding: 14px 20px; border-bottom: 1px solid #1a1a1a;">
+            <label style="margin-top:0">Account Currency</label>
+            <div class="ccy-search-wrap" id="ccySearchWrap">
+                <input type="text" class="ccy-search-input" id="ccySearchInput"
+                    placeholder="Search currency (e.g. NGN, EUR...)"
+                    oninput="filterCurrencies()" onfocus="openCcyDropdown()" autocomplete="off">
+                <div class="ccy-dropdown" id="ccyDropdown"></div>
+            </div>
+            <div id="ccySelectedBadge" style="margin-top:6px; font-size:9px; font-family:monospace; color:#555;">LOADING CURRENCIES...</div>
         </div>
         <div class="modal-add">
             <div>
