@@ -247,11 +247,17 @@
             <div><label>Entry</label><input type="number" id="entry" oninput="c()"></div>
             <div><label>Stop Loss</label><input type="number" id="exit" oninput="c()"></div>
         </div>
+        <div class="grid">
+            <div><label>Take Profit</label><input type="number" id="tp" placeholder="optional" oninput="c()"></div>
+            <div></div>
+        </div>
     </div>
 
     <div id="dist-wrap" class="hidden">
-        <label>Points Distance</label>
-        <input type="number" id="dist" placeholder="0.00" oninput="c()">
+        <div class="grid">
+            <div><label>Points Distance</label><input type="number" id="dist" placeholder="0.00" oninput="c()"></div>
+            <div><label>R:R Ratio</label><input type="number" id="rr" placeholder="optional" step="0.1" oninput="c()"></div>
+        </div>
     </div>
 
     <div class="dp-wrap">
@@ -273,6 +279,7 @@
         <span class="val" id="pos">0.00</span>
         <div class="risk-stat">
             EST. FIAT RISK: <b id="actual">$0.00</b>
+            <span id="profitWrap" style="display:none"> &nbsp;·&nbsp; PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></span>
         </div>
     </div>
 
@@ -287,7 +294,7 @@
 </div>
 
 <script>
-const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit', 'dpSlider'];
+const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit', 'tp', 'rr', 'dpSlider'];
 const selectState = { riskModeSelect: 'fixed', inputModeSelect: 'price' };
 
 let history = JSON.parse(localStorage.getItem('tradeHistory') || "[]");
@@ -522,6 +529,24 @@ function c(skipHistory = false) {
 
         document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
         document.getElementById('actual').innerText = "$" + realRisk;
+
+        // Profit calculation
+        let profitDist = 0;
+        if (selectState.inputModeSelect === 'price') {
+            const tpVal = parseFloat(document.getElementById('tp').value);
+            const entryVal = parseFloat(document.getElementById('entry').value) || 0;
+            if (tpVal) profitDist = Math.abs(tpVal - entryVal);
+        } else {
+            const rrVal = parseFloat(document.getElementById('rr').value);
+            if (rrVal) profitDist = dist * rrVal;
+        }
+        if (profitDist > 0) {
+            const estProfit = (roundedUpSize * profitDist * mult * fxRate).toFixed(2);
+            document.getElementById('estProfit').innerText = '$' + estProfit;
+            document.getElementById('profitWrap').style.display = 'inline';
+        } else {
+            document.getElementById('profitWrap').style.display = 'none';
+        }
 
         clearTimeout(timeout);
         if (!skipHistory) timeout = setTimeout(() => {
