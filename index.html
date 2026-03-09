@@ -344,17 +344,11 @@
         <span class="val" id="pos">0.00</span>
         <div id="dpHint" style="display:none; font-size:9px; color:#ffa500; font-family:monospace; margin-bottom:8px; text-align:center;"></div>
         <div class="risk-stat">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>EST. FIAT RISK: <b id="actual">$0.00</b></span>
-            </div>
-            <div id="profitWrap" style="display:none; margin-top:6px; justify-content:space-between; align-items:center;">
-                <span>EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></span>
-            </div>
-            <div style="margin-top:10px; padding-top:8px; border-top:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:9px; color:#333; font-family:monospace; text-transform:uppercase;">View in</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:9px; color:#333; font-family:monospace; text-transform:uppercase; letter-spacing:0.5px;">View in</span>
                 <div class="view-in-select-wrap" id="viewInSelectWrap">
                     <div class="view-in-trigger" onclick="toggleViewInDropdown()">
-                        <span id="viewInCcyLabel" style="font-size:10px;">—</span>
+                        <span id="viewInCcyLabel" style="font-size:10px;">Default</span>
                         <span style="font-size:8px; color:#444;">▼</span>
                     </div>
                     <div class="view-in-options" id="viewInOptions">
@@ -363,6 +357,8 @@
                     </div>
                 </div>
             </div>
+            <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
+            <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
         </div>
     </div>
 
@@ -849,7 +845,8 @@ function renderViewInList(filter) {
     const filtered = f
         ? currencyList.filter(c => c.code.includes(f) || (c.name||'').toUpperCase().includes(f))
         : currencyList;
-    list.innerHTML = filtered.slice(0, 80).map(c =>
+    const defaultOpt = f ? '' : `<div class="view-in-option${!viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('')">Default</div>`;
+    list.innerHTML = defaultOpt + filtered.slice(0, 80).map(c =>
         `<div class="view-in-option${c.code === viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('${c.code}')">${c.code} — ${c.name}</div>`
     ).join('');
 }
@@ -915,20 +912,18 @@ function updateViewInDisplay() {
     if (!viewInCcy || !viewInRate) return;
     const sym = getViewInSym(viewInCcy);
 
-    // Replace risk display
-    const riskRaw = parseFloat((document.getElementById('actual').dataset.raw || '0'));
+    const riskRaw = parseFloat(document.getElementById('actual').dataset.raw || '0');
     if (riskRaw > 0) {
         const conv = (riskRaw * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
-        document.getElementById('actual').innerHTML = `<span style="font-size:0.75em;opacity:0.5">${getCcySymbol()}${riskRaw}</span> ≈ ${sym}${conv}`;
+        document.getElementById('actual').innerText = sym + conv;
     }
 
-    // Replace profit display
     const profitWrap = document.getElementById('profitWrap');
     if (profitWrap && profitWrap.style.display !== 'none') {
-        const profitRaw = parseFloat((document.getElementById('estProfit').dataset.raw || '0'));
+        const profitRaw = parseFloat(document.getElementById('estProfit').dataset.raw || '0');
         if (profitRaw > 0) {
             const convP = (profitRaw * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
-            document.getElementById('estProfit').innerHTML = `<span style="font-size:0.75em;opacity:0.5">${getCcySymbol()}${profitRaw}</span> ≈ ${sym}${convP}`;
+            document.getElementById('estProfit').innerText = sym + convP;
         }
     }
 }
