@@ -321,7 +321,7 @@
     <div id="dist-wrap" class="hidden">
         <div class="grid">
             <div><label>Points Distance</label><input type="number" id="dist" placeholder="0.00" oninput="c()"></div>
-            <div><label>R:R Ratio</label><input type="number" id="rr" placeholder="e.g. 2 = 1:2" step="0.1" oninput="c()"></div>
+            <div><label>Risk : Reward</label><input type="number" id="rr" placeholder="e.g. 2 = 1:2" step="0.1" oninput="c()"></div>
         </div>
     </div>
 
@@ -750,8 +750,8 @@ function loadHistory(i) {
     if (item.rm === 'fixed') document.getElementById('cashRisk').value = item.cr;
     else { document.getElementById('balance').value = item.bal; document.getElementById('pct').value = item.p; }
     setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
-    if (item.im === 'dist') document.getElementById('dist').value = item.d;
-    else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; }
+    if (item.im === 'dist') { document.getElementById('dist').value = item.d; document.getElementById('rr').value = item.rr || ''; }
+    else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; document.getElementById('tp').value = item.tp || ''; }
     if (item.accy && item.accy !== accountCcy) {
         accountCcy = item.accy;
         localStorage.setItem('accountCcy', accountCcy);
@@ -819,7 +819,7 @@ function c(skipHistory = false) {
             if (roundedUpSize > 0) {
                 const latest = history[0];
                 if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
-                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
+                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value });
                     history = history.slice(0, 10);
                     localStorage.setItem('tradeHistory', JSON.stringify(history));
                     renderHistory();
