@@ -368,7 +368,7 @@ function toggleHistory() {
 }
 
 function clearInputs() {
-    inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.removeItem(id); });
+    inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.setItem(id, ''); });
     setDropdown('riskModeSelect', 'fixed'); selectState.riskModeSelect = 'fixed'; localStorage.removeItem('riskModeSelect');
     setDropdown('inputModeSelect', 'price'); selectState.inputModeSelect = 'price'; localStorage.removeItem('inputModeSelect');
     document.getElementById('dpSlider').value = 2;
