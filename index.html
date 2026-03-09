@@ -232,11 +232,11 @@
             <label>Risk Mode</label>
             <div class="custom-select" id="riskModeSelect">
                 <div class="custom-select-trigger" onclick="toggleDropdown('riskModeSelect')">
-                    <span id="riskModeLabel">USD Amount</span>
+                    <span id="riskModeLabel">Amount</span>
                     <span class="custom-select-chevron">▼</span>
                 </div>
                 <div class="custom-select-options">
-                    <div class="custom-select-option selected" data-value="fixed" onclick="selectOption('riskModeSelect','fixed','USD Amount',this)">USD Amount</div>
+                    <div class="custom-select-option selected" data-value="fixed" id="fixedRiskOption" onclick="selectOption('riskModeSelect','fixed','Amount',this)">Amount</div>
                     <div class="custom-select-option" data-value="percent" onclick="selectOption('riskModeSelect','percent','% of Balance',this)">% of Balance</div>
                 </div>
             </div>
@@ -250,7 +250,7 @@
 
     <div id="percent-risk-wrap" class="hidden">
         <div class="grid">
-            <div><label>Balance</label><input type="number" id="balance" oninput="c()"></div>
+            <div><label id="balanceLabel">Balance</label><input type="number" id="balance" oninput="c()"></div>
             <div><label>Risk %</label><input type="number" id="pct" step="0.1" oninput="c()"></div>
         </div>
     </div>
@@ -302,6 +302,7 @@
         <span class="copy-tag" id="copyText">TAP TO COPY</span>
         <span class="lot-label">CALCULATED VOLUME</span>
         <span class="val" id="pos">0.00</span>
+        <div id="dpHint" style="display:none; font-size:9px; color:#ffa500; font-family:monospace; margin-bottom:8px; text-align:center;"></div>
         <div class="risk-stat">
             <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
             <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
@@ -336,12 +337,21 @@ function getCcySymbol() {
     return (symbols[accountCcy] || accountCcy + ' ');
 }
 
+function getFixedLabel() { return accountCcy + ' Amount'; }
+
 function updateCcyDisplay() {
     const sym = getCcySymbol();
-    // Always update risk label
+    // Update risk amount label
     const riskLabel = document.getElementById('riskAmountLabel');
     if (riskLabel) riskLabel.innerText = `Risk Amount (${sym.trim() || accountCcy})`;
-    // Re-run calculation to refresh displayed values with new currency symbol
+    // Update fixed risk mode dropdown label and option text
+    const fixedOption = document.getElementById('fixedRiskOption');
+    if (fixedOption) fixedOption.innerText = getFixedLabel();
+    if (selectState.riskModeSelect === 'fixed') {
+        const trigger = document.querySelector('#riskModeSelect .custom-select-trigger span');
+        if (trigger) trigger.innerText = getFixedLabel();
+    }
+    // Auto-suggest dp if result would be 0.00
     c();
 }
 let currencyList = []; // [{code, name}]
@@ -513,7 +523,7 @@ async function fetchRate(force = false) {
     }
 
     indicator.className = 'fx-rate loading';
-    indicator.innerText = `FETCHING ${quoteCcy}/USD...`;
+    indicator.innerText = `FETCHING ${quoteCcy}/${accountCcy}...`;
 
     try {
         const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=${quoteCcy}/${accountCcy}&apikey=${apiKey}`);
@@ -699,6 +709,14 @@ function c(skipHistory = false) {
         const realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
 
         document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
+        // Warn if rounded to zero — suggest more dp
+        const dpHint = document.getElementById('dpHint');
+        if (roundedUpSize > 0 && parseFloat(roundedUpSize.toFixed(dp)) === 0) {
+            dpHint.innerText = '⚠ Result too small for ' + dp + 'dp — increase precision';
+            dpHint.style.display = 'block';
+        } else {
+            dpHint.style.display = 'none';
+        }
         document.getElementById('actual').innerText = getCcySymbol() + realRisk;
 
         // Profit calculation
