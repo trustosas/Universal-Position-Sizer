@@ -189,7 +189,7 @@
     <div class="grid">
         <div>
             <label>Contract Size</label>
-            <input type="number" id="mult" value="1" oninput="saveSymbol(); c();">
+            <input type="number" id="mult" oninput="saveSymbol(); c();">
         </div>
         <div>
             <label>Risk Mode</label>
@@ -208,13 +208,13 @@
 
     <div id="fixed-risk-wrap">
         <label>Risk Amount ($)</label>
-        <input type="number" id="cashRisk" value="20.48" oninput="c()">
+        <input type="number" id="cashRisk" oninput="c()">
     </div>
 
     <div id="percent-risk-wrap" class="hidden">
         <div class="grid">
-            <div><label>Balance</label><input type="number" id="balance" value="10000" oninput="c()"></div>
-            <div><label>Risk %</label><input type="number" id="pct" value="1" step="0.1" oninput="c()"></div>
+            <div><label>Balance</label><input type="number" id="balance" oninput="c()"></div>
+            <div><label>Risk %</label><input type="number" id="pct" step="0.1" oninput="c()"></div>
         </div>
     </div>
 
