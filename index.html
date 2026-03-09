@@ -391,19 +391,22 @@ function getCcySymbol() {
 
 function getFixedLabel() { return accountCcy + ' Amount'; }
 
-function updateCcyDisplay() {
+function updateCcyLabels() {
     const sym = getCcySymbol();
-    // Update risk amount label
     const riskLabel = document.getElementById('riskAmountLabel');
     if (riskLabel) riskLabel.innerText = `Risk Amount (${sym.trim() || accountCcy})`;
-    // Update fixed risk mode dropdown label and option text
+    const balLabel = document.getElementById('balanceLabel');
+    if (balLabel) balLabel.innerText = `Balance (${accountCcy})`;
     const fixedOption = document.getElementById('fixedRiskOption');
     if (fixedOption) fixedOption.innerText = getFixedLabel();
     if (selectState.riskModeSelect === 'fixed') {
         const trigger = document.querySelector('#riskModeSelect .custom-select-trigger span');
         if (trigger) trigger.innerText = getFixedLabel();
     }
-    // Auto-suggest dp if result would be 0.00
+}
+
+function updateCcyDisplay() {
+    updateCcyLabels();
     c();
 }
 let currencyList = []; // [{code, name}]
@@ -745,6 +748,16 @@ function renderHistory() {
 function loadHistory(i) {
     const item = history[i];
     document.getElementById('symbol').value = item.sym;
+    // Restore account currency first
+    if (item.accy && item.accy !== accountCcy) {
+        accountCcy = item.accy;
+        localStorage.setItem('accountCcy', accountCcy);
+        fxCache = {};
+        viewInCache = {};
+        updateCcyLabels();
+        updateCcyBadge();
+    }
+    document.getElementById('symbol').value = item.sym;
     document.getElementById('mult').value = item.m;
     setDropdown('riskModeSelect', item.rm); selectState.riskModeSelect = item.rm;
     if (item.rm === 'fixed') document.getElementById('cashRisk').value = item.cr;
@@ -752,14 +765,6 @@ function loadHistory(i) {
     setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
     if (item.im === 'dist') { document.getElementById('dist').value = item.d; document.getElementById('rr').value = item.rr || ''; }
     else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; document.getElementById('tp').value = item.tp || ''; }
-    if (item.accy && item.accy !== accountCcy) {
-        accountCcy = item.accy;
-        localStorage.setItem('accountCcy', accountCcy);
-        fxCache = {};
-        viewInCache = {};
-        updateCcyDisplay();
-        updateCcyBadge();
-    }
     toggleRisk(); toggleInput(); fetchRate();
 }
 
