@@ -689,7 +689,19 @@ function clearInputs() {
     document.getElementById('dpSlider').value = 2;
     updateDp();
     document.getElementById('pos').innerText = '0.00';
-    document.getElementById('actual').dataset.raw = '0'; document.getElementById('actual').innerText = getCcySymbol() + '0.00';
+    document.getElementById('actual').dataset.raw = '0';
+    document.getElementById('actual').innerText = getCcySymbol() + '0.00';
+    document.getElementById('profitWrap').style.display = 'none';
+    document.getElementById('estProfit').dataset.raw = '0';
+    document.getElementById('estProfit').innerText = getCcySymbol() + '0.00';
+    // Reset View In
+    viewInCcy = '';
+    viewInRate = null;
+    localStorage.removeItem('viewInCcy');
+    const label = document.getElementById('viewInCcyLabel');
+    label.innerText = 'Default';
+    label.style.color = '#555';
+    renderViewInList('');
     toggleRisk(); toggleInput();
 }
 
