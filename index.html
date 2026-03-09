@@ -344,21 +344,22 @@
         <span class="val" id="pos">0.00</span>
         <div id="dpHint" style="display:none; font-size:9px; color:#ffa500; font-family:monospace; margin-bottom:8px; text-align:center;"></div>
         <div class="risk-stat">
-            <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
-            <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
-            <div class="view-in-wrap" id="viewInWrap">
-                <div class="view-in-row">
-                    <span class="view-in-label">VIEW IN</span>
-                    <div class="view-in-values" id="viewInValues"><span class="view-in-loading" id="viewInLoading"></span></div>
-                    <div class="view-in-select-wrap" id="viewInSelectWrap">
-                        <div class="view-in-trigger" onclick="toggleViewInDropdown()">
-                            <span id="viewInCcyLabel">—</span>
-                            <span style="font-size:8px; color:#444;">▼</span>
-                        </div>
-                        <div class="view-in-options" id="viewInOptions">
-                            <input type="text" class="view-in-search" id="viewInSearch" placeholder="Search..." oninput="filterViewIn()">
-                            <div class="view-in-list" id="viewInList"></div>
-                        </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>EST. FIAT RISK: <b id="actual">$0.00</b></span>
+            </div>
+            <div id="profitWrap" style="display:none; margin-top:6px; justify-content:space-between; align-items:center;">
+                <span>EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></span>
+            </div>
+            <div style="margin-top:10px; padding-top:8px; border-top:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:9px; color:#333; font-family:monospace; text-transform:uppercase;">View in</span>
+                <div class="view-in-select-wrap" id="viewInSelectWrap">
+                    <div class="view-in-trigger" onclick="toggleViewInDropdown()">
+                        <span id="viewInCcyLabel" style="font-size:10px;">—</span>
+                        <span style="font-size:8px; color:#444;">▼</span>
+                    </div>
+                    <div class="view-in-options" id="viewInOptions">
+                        <input type="text" class="view-in-search" id="viewInSearch" placeholder="Search..." oninput="filterViewIn()">
+                        <div class="view-in-list" id="viewInList"></div>
                     </div>
                 </div>
             </div>
@@ -693,7 +694,7 @@ function clearInputs() {
     document.getElementById('dpSlider').value = 2;
     updateDp();
     document.getElementById('pos').innerText = '0.00';
-    document.getElementById('actual').innerText = getCcySymbol() + '0.00';
+    document.getElementById('actual').dataset.raw = '0'; document.getElementById('actual').innerText = getCcySymbol() + '0.00';
     toggleRisk(); toggleInput();
 }
 
@@ -785,7 +786,7 @@ function c(skipHistory = false) {
         } else {
             dpHint.style.display = 'none';
         }
-        document.getElementById('actual').innerText = getCcySymbol() + realRisk;
+        document.getElementById('actual').dataset.raw = realRisk; document.getElementById('actual').innerText = getCcySymbol() + realRisk;
 
         // Profit calculation
         let profitDist = 0;
@@ -799,7 +800,7 @@ function c(skipHistory = false) {
         }
         if (profitDist > 0) {
             const estProfit = (roundedUpSize * profitDist * mult * fxRate).toFixed(2);
-            document.getElementById('estProfit').innerText = getCcySymbol() + estProfit;
+            document.getElementById('estProfit').dataset.raw = estProfit; document.getElementById('estProfit').innerText = getCcySymbol() + estProfit;
             document.getElementById('profitWrap').style.display = 'inline';
         } else {
             document.getElementById('profitWrap').style.display = 'none';
@@ -904,38 +905,32 @@ async function fetchViewInRate() {
     } catch(e) { viewInRate = null; }
 }
 
+function getViewInSym(code) {
+    const s = {USD:'$',EUR:'€',GBP:'£',JPY:'¥',NGN:'₦',GHS:'₵',KES:'KSh',ZAR:'R',INR:'₹',CNY:'¥',
+               CAD:'CA$',AUD:'A$',BRL:'R$',CHF:'Fr',MXN:'MX$',SGD:'S$',HKD:'HK$',TRY:'₺',RUB:'₽',KRW:'₩'};
+    return s[code] || (code + ' ');
+}
+
 function updateViewInDisplay() {
-    const wrap = document.getElementById('viewInWrap');
-    const valEl = document.getElementById('viewInValues');
-    if (!viewInCcy) return;
+    if (!viewInCcy || !viewInRate) return;
+    const sym = getViewInSym(viewInCcy);
 
-    const riskText = document.getElementById('actual').innerText;
-    const riskNum = parseFloat(riskText.replace(/[^0-9.]/g, ''));
-
-    if (!viewInRate || isNaN(riskNum) || riskNum === 0) {
-        valEl.innerHTML = '<span class="view-in-loading">—</span>'; valEl.classList.add('active');
-        return;
+    // Replace risk display
+    const riskRaw = parseFloat((document.getElementById('actual').dataset.raw || '0'));
+    if (riskRaw > 0) {
+        const conv = (riskRaw * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
+        document.getElementById('actual').innerHTML = `<span style="font-size:0.75em;opacity:0.5">${getCcySymbol()}${riskRaw}</span> ≈ ${sym}${conv}`;
     }
 
-    const sym = (() => {
-        const s = {USD:'$',EUR:'€',GBP:'£',JPY:'¥',NGN:'₦',GHS:'₵',KES:'KSh',ZAR:'R',INR:'₹',CNY:'¥',
-                   CAD:'CA$',AUD:'A$',BRL:'R$',CHF:'Fr',MXN:'MX$',SGD:'S$',HKD:'HK$',TRY:'₺',RUB:'₽',KRW:'₩'};
-        return s[viewInCcy] || viewInCcy + ' ';
-    })();
-
-    const convRisk = (riskNum * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
-    let html = `<span class="viv-risk">≈ ${sym}${convRisk}</span>`;
-
+    // Replace profit display
     const profitWrap = document.getElementById('profitWrap');
     if (profitWrap && profitWrap.style.display !== 'none') {
-        const profitText = document.getElementById('estProfit').innerText;
-        const profitNum = parseFloat(profitText.replace(/[^0-9.]/g, ''));
-        if (!isNaN(profitNum) && profitNum > 0) {
-            const convProfit = (profitNum * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
-            html += ` <span style="color:#333">·</span> <span class="viv-profit">≈ ${sym}${convProfit}</span>`;
+        const profitRaw = parseFloat((document.getElementById('estProfit').dataset.raw || '0'));
+        if (profitRaw > 0) {
+            const convP = (profitRaw * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('estProfit').innerHTML = `<span style="font-size:0.75em;opacity:0.5">${getCcySymbol()}${profitRaw}</span> ≈ ${sym}${convP}`;
         }
     }
-    valEl.classList.add('active'); valEl.innerHTML = html;
 }
 
 function openManage() {
