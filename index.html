@@ -81,10 +81,7 @@
         .risk-stat b { color: #ff4444; }
         .copy-tag { position: absolute; top: 8px; right: 12px; font-size: 8px; color: #222; font-weight: bold; }
 
-        .history-section { margin-top: 20px; border-radius: 8px; background: #080808; border: 1px solid #1a1a1a; overflow: hidden; }
-        .history-trigger { padding: 12px; font-size: 11px; cursor: pointer; display: flex; justify-content: space-between; color: #444; font-weight: bold; }
-        #hist-list { max-height: 0; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
-        #hist-list.open { max-height: 300px; overflow-y: auto; }
+
         .hist-item { font-size: 11px; color: #555; padding: 12px; border-top: 1px solid #151515; display: flex; justify-content: space-between; align-items: center; }
         .hist-item b { color: #888; }
 
@@ -175,6 +172,7 @@
         <div class="btn-group">
             <button class="btn" style="color:#ffa500" onclick="clearInputs()">Reset</button>
             <button class="btn" style="color:#00ff88" onclick="openManage()">Manage</button>
+            <button class="btn" onclick="openHistory()">History</button>
             <button class="btn" onclick="toggleInfo()">Help</button>
         </div>
     </div>
@@ -283,14 +281,7 @@
         </div>
     </div>
 
-    <div class="history-section">
-        <div class="history-trigger" onclick="toggleHistory()">
-            <span>HISTORY LOG</span>
-            <span id="hist-arrow">▼</span>
-        </div>
-        <div id="hist-list"></div>
-        <button class="btn" style="width:100%; border-radius:0; border:none; border-top:1px solid #1a1a1a; color:#ff4444; padding: 12px;" onclick="clearHistory()">Wipe Log</button>
-    </div>
+
 </div>
 
 <script>
@@ -450,11 +441,8 @@ function saveSymbol() {
     if (s && m) { lib[s] = m; localStorage.setItem('symbolLib', JSON.stringify(lib)); }
 }
 
-function toggleHistory() {
-    const list = document.getElementById('hist-list');
-    list.classList.toggle('open');
-    document.getElementById('hist-arrow').innerText = list.classList.contains('open') ? '▲' : '▼';
-}
+function openHistory() { renderHistory(); document.getElementById('historyModal').classList.add('open'); }
+function closeHistory() { document.getElementById('historyModal').classList.remove('open'); }
 
 function clearInputs() {
     inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.setItem(id, ''); });
@@ -645,6 +633,18 @@ function deleteInstrument(sym) {
     renderLib();
 }
 </script>
+<!-- History Modal -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">History Log</span>
+            <button class="modal-close" onclick="closeHistory()">✕</button>
+        </div>
+        <div class="lib-list" id="hist-list"></div>
+        <button class="btn" style="width:100%; border-radius:0; border:none; border-top:1px solid #1a1a1a; color:#ff4444; padding:12px;" onclick="clearHistory()">Wipe Log</button>
+    </div>
+</div>
+
 <!-- Manage Modal -->
 <div class="modal-overlay" id="manageModal">
     <div class="modal">
