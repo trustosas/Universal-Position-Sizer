@@ -244,7 +244,7 @@
     </div>
 
     <div id="fixed-risk-wrap">
-        <label>Risk Amount ($)</label>
+        <label id="riskAmountLabel">Risk Amount ($)</label>
         <input type="number" id="cashRisk" oninput="c()">
     </div>
 
@@ -321,6 +321,29 @@ let fxRate = 1;
 let fxCache = {};
 const FX_TTL = 30 * 1000; // 30s cache
 let accountCcy = localStorage.getItem('accountCcy') || 'USD';
+
+function getCcySymbol() {
+    const symbols = {
+        USD:'$', EUR:'€', GBP:'£', JPY:'¥', CNY:'¥', INR:'₹',
+        NGN:'₦', KRW:'₩', TRY:'₺', RUB:'₽', BRL:'R$', ZAR:'R',
+        CAD:'CA$', AUD:'A$', NZD:'NZ$', HKD:'HK$', SGD:'S$',
+        MXN:'MX$', CHF:'Fr', SEK:'kr', NOK:'kr', DKK:'kr',
+        PLN:'zł', CZK:'Kč', HUF:'Ft', RON:'lei', BGN:'лв',
+        AED:'د.إ', SAR:'﷼', KWD:'د.ك', QAR:'﷼', EGP:'E£',
+        GHS:'₵', KES:'KSh', TZS:'TSh', UGX:'USh', ZMW:'ZK',
+        IDR:'Rp', MYR:'RM', THB:'฿', PHP:'₱', VND:'₫', PKR:'₨',
+    };
+    return (symbols[accountCcy] || accountCcy + ' ');
+}
+
+function updateCcyDisplay() {
+    const sym = getCcySymbol();
+    // Always update risk label
+    const riskLabel = document.getElementById('riskAmountLabel');
+    if (riskLabel) riskLabel.innerText = `Risk Amount (${sym.trim() || accountCcy})`;
+    // Re-run calculation to refresh displayed values with new currency symbol
+    c();
+}
 let currencyList = []; // [{code, name}]
 
 function getTwelveDataKey() {
@@ -421,9 +444,10 @@ function closeCcyDropdown() {
 function selectAccountCcy(code, name) {
     accountCcy = code;
     localStorage.setItem('accountCcy', code);
-    fxCache = {}; // invalidate on currency change
+    fxCache = {};
     closeCcyDropdown();
     updateCcyBadge();
+    updateCcyDisplay();
     fetchRate();
 }
 
@@ -554,7 +578,7 @@ window.onload = () => {
     if (savedRisk) setDropdown('riskModeSelect', savedRisk);
     if (savedInput) setDropdown('inputModeSelect', savedInput);
     toggleRisk(); toggleInput(); renderHistory();
-    updateDp(); fetchRate();
+    updateDp(); updateCcyDisplay(); fetchRate();
 };
 
 function copySize() {
@@ -599,7 +623,7 @@ function clearInputs() {
     document.getElementById('dpSlider').value = 2;
     updateDp();
     document.getElementById('pos').innerText = '0.00';
-    document.getElementById('actual').innerText = '$0.00';
+    document.getElementById('actual').innerText = getCcySymbol() + '0.00';
     toggleRisk(); toggleInput();
 }
 
@@ -675,7 +699,7 @@ function c(skipHistory = false) {
         const realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
 
         document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
-        document.getElementById('actual').innerText = "$" + realRisk;
+        document.getElementById('actual').innerText = getCcySymbol() + realRisk;
 
         // Profit calculation
         let profitDist = 0;
@@ -689,7 +713,7 @@ function c(skipHistory = false) {
         }
         if (profitDist > 0) {
             const estProfit = (roundedUpSize * profitDist * mult * fxRate).toFixed(2);
-            document.getElementById('estProfit').innerText = '$' + estProfit;
+            document.getElementById('estProfit').innerText = getCcySymbol() + estProfit;
             document.getElementById('profitWrap').style.display = 'inline';
         } else {
             document.getElementById('profitWrap').style.display = 'none';
@@ -700,7 +724,7 @@ function c(skipHistory = false) {
             if (roundedUpSize > 0) {
                 const latest = history[0];
                 if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
-                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
+                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value });
                     history = history.slice(0, 10);
                     localStorage.setItem('tradeHistory', JSON.stringify(history));
                     renderHistory();
