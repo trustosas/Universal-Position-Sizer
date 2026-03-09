@@ -508,7 +508,7 @@ function c(skipHistory = false) {
         const factor = Math.pow(10, dp);
         const exactSize = targetRisk / (dist * mult * fxRate);
         const roundedUpSize = Math.ceil(exactSize * factor) / factor;
-        const realRisk = (roundedUpSize * dist * mult).toFixed(2);
+        const realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
 
         document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
         document.getElementById('actual').innerText = "$" + realRisk;
