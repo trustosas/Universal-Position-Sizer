@@ -765,6 +765,7 @@ function loadHistory(i) {
     setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
     if (item.im === 'dist') { document.getElementById('dist').value = item.d; document.getElementById('rr').value = item.rr || ''; }
     else { document.getElementById('entry').value = item.en; document.getElementById('exit').value = item.ex; document.getElementById('tp').value = item.tp || ''; }
+    if (item.dp) { document.getElementById('dpSlider').value = item.dp; updateDp(); }
     toggleRisk(); toggleInput(); fetchRate();
 }
 
@@ -824,7 +825,7 @@ function c(skipHistory = false) {
             if (roundedUpSize > 0) {
                 const latest = history[0];
                 if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
-                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value });
+                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, dp: dp, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value });
                     history = history.slice(0, 10);
                     localStorage.setItem('tradeHistory', JSON.stringify(history));
                     renderHistory();
