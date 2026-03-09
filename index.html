@@ -339,7 +339,6 @@
     </div>
 
     <div class="res-container">
-        <span class="copy-tag" id="copyText">TAP TO COPY</span>
         <span class="lot-label">CALCULATED VOLUME</span>
         <span class="val" id="pos" onclick="copySize()" style="cursor:pointer;">0.00</span>
         <div id="dpHint" style="display:none; font-size:9px; color:#ffa500; font-family:monospace; margin-bottom:8px; text-align:center;"></div>
@@ -651,10 +650,10 @@ window.onload = () => {
 function copySize() {
     const val = document.getElementById('pos').innerText;
     navigator.clipboard.writeText(val);
-    const hint = document.getElementById('copyText');
-    hint.innerText = "COPIED!";
-    hint.style.color = "#00ff88";
-    setTimeout(() => { hint.innerText = "TAP TO COPY"; hint.style.color = "#222"; }, 1500);
+    const el = document.getElementById('pos');
+    const orig = el.style.color;
+    el.style.color = '#fff';
+    setTimeout(() => { el.style.color = orig; }, 300);
 }
 
 function showSuggestions() {
@@ -845,7 +844,7 @@ function renderViewInList(filter) {
     const filtered = f
         ? currencyList.filter(c => c.code.includes(f) || (c.name||'').toUpperCase().includes(f))
         : currencyList;
-    const defaultOpt = f ? '' : `<div class="view-in-option${!viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('')">Default</div>`;
+    const defaultOpt = `<div class="view-in-option${!viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('')">Default</div>`;
     list.innerHTML = defaultOpt + filtered.slice(0, 80).map(c =>
         `<div class="view-in-option${c.code === viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('${c.code}')">${c.code} — ${c.name}</div>`
     ).join('');
