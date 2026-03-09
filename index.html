@@ -873,13 +873,31 @@ function closeViewInDropdown() {
 
 async function selectViewInCcy(code) {
     viewInCcy = code;
-    localStorage.setItem('viewInCcy', code);
-    document.getElementById('viewInCcyLabel').innerText = code;
-    document.getElementById('viewInCcyLabel').style.color = '#00ff88';
+    if (code) localStorage.setItem('viewInCcy', code);
+    else localStorage.removeItem('viewInCcy');
+    const label = document.getElementById('viewInCcyLabel');
+    if (code) {
+        label.innerText = code;
+        label.style.color = '#00ff88';
+    } else {
+        label.innerText = 'Default';
+        label.style.color = '#555';
+    }
     closeViewInDropdown();
     renderViewInList('');
-    await fetchViewInRate();
-    updateViewInDisplay();
+    if (code) {
+        await fetchViewInRate();
+        updateViewInDisplay();
+    } else {
+        viewInRate = null;
+        const riskRaw = document.getElementById('actual').dataset.raw;
+        const profitRaw = document.getElementById('estProfit').dataset.raw;
+        if (riskRaw) document.getElementById('actual').innerText = getCcySymbol() + parseFloat(riskRaw).toFixed(2);
+        const profitWrap = document.getElementById('profitWrap');
+        if (profitRaw && profitWrap && profitWrap.style.display !== 'none') {
+            document.getElementById('estProfit').innerText = getCcySymbol() + parseFloat(profitRaw).toFixed(2);
+        }
+    }
 }
 
 async function fetchViewInRate() {
