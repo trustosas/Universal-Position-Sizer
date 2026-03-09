@@ -455,6 +455,12 @@ function clearInputs() {
     toggleRisk(); toggleInput();
 }
 
+function deleteHistory(i) {
+    history.splice(i, 1);
+    localStorage.setItem('tradeHistory', JSON.stringify(history));
+    renderHistory();
+}
+
 function clearHistory() { if(confirm("Wipe history?")) { history = []; localStorage.setItem('tradeHistory', JSON.stringify(history)); renderHistory(); } }
 
 function toggleRisk() {
@@ -475,8 +481,13 @@ function renderHistory() {
     history.forEach((h, i) => {
         const div = document.createElement('div');
         div.className = 'hist-item';
-        div.onclick = () => loadHistory(i);
-        div.innerHTML = `<span><b>${h.sym || '??'}</b>: ${h.size}</span> <span>$${h.risk}</span>`;
+        div.style.gap = '8px';
+        div.innerHTML = `
+            <span style="flex:1; cursor:pointer;" onclick="loadHistory(${i}); closeHistory();">
+                <b>${h.sym || '??'}</b>: ${h.size} <span style="color:#444;">$${h.risk}</span>
+            </span>
+            <button onclick="deleteHistory(${i})" style="background:none; border:1px solid #222; color:#444; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:12px; flex-shrink:0; transition:0.15s;" onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'" onmouseout="this.style.borderColor='#222';this.style.color='#444'">✕</button>
+        `;
         list.appendChild(div);
     });
 }
