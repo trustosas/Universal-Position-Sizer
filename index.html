@@ -732,12 +732,30 @@ function renderHistory() {
     const list = document.getElementById('hist-list');
     list.innerHTML = '';
     history.forEach((h, i) => {
+        // Build entry/stop line depending on input mode
+        let priceInfo = '';
+        if (h.im === 'dist') {
+            if (h.d) priceInfo = `<span style="color:#333; font-size:10px;">DIST ${h.d}</span>`;
+        } else {
+            const parts = [];
+            if (h.en) parts.push(`E:${h.en}`);
+            if (h.ex) parts.push(`SL:${h.ex}`);
+            if (h.tp) parts.push(`TP:${h.tp}`);
+            if (parts.length) priceInfo = `<span style="color:#333; font-size:10px;">${parts.join(' · ')}</span>`;
+        }
         const div = document.createElement('div');
         div.className = 'hist-item';
         div.style.gap = '8px';
         div.innerHTML = `
-            <span style="flex:1; cursor:pointer;" onclick="loadHistory(${i}); closeHistory();">
-                <b>${h.sym || '??'}</b>: ${h.size} <span style="color:#444;">${h.ccy || '$'}${h.risk}</span>
+            <span style="flex:1; cursor:pointer; line-height:1.6;" onclick="loadHistory(${i}); closeHistory();">
+                <span style="display:flex; justify-content:space-between; align-items:baseline;">
+                    <b>${h.sym || '??'}</b>
+                    <span style="color:#888; font-size:12px;">${h.size} lots</span>
+                </span>
+                <span style="display:flex; justify-content:space-between; align-items:baseline; margin-top:2px;">
+                    ${priceInfo}
+                    <span style="color:#444; font-size:10px;">${h.ccy || '$'}${h.risk} risk</span>
+                </span>
             </span>
             <button onclick="deleteHistory(${i})" style="background:none; border:1px solid #222; color:#444; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:12px; flex-shrink:0; transition:0.15s;" onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'" onmouseout="this.style.borderColor='#222';this.style.color='#444'">✕</button>
         `;
