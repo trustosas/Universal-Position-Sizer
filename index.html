@@ -22,6 +22,7 @@
             --muted3:   #333;
             --accent:   #00ff88;
             --danger:   #ff4444;
+            --warn:     #cc7700;
             --pill-bg:  #1a1a1a;
             --hover-bg: #0f0f0f;
             --res-grad: linear-gradient(145deg, #0a0a0a, #111);
@@ -42,6 +43,7 @@
             --muted3:   #bbb;
             --accent:   #00994d;
             --danger:   #cc2200;
+            --warn:     #b35c00;
             --pill-bg:  #e8e8e8;
             --hover-bg: #f0f0f0;
             --res-grad: linear-gradient(145deg, #f5f5f5, #ececec);
@@ -58,6 +60,8 @@
         .btn-group { display: flex; gap: 6px; }
         .btn { background: var(--pill-bg); color: var(--muted); border: 1px solid var(--border2); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 10px; font-weight: bold; text-transform: uppercase; flex: 1; }
         .btn:active { background: var(--accent); color: #000; }
+        .btn-reset { color: var(--warn); }
+        .btn-manage { color: var(--accent); }
         .theme-btn { background: var(--pill-bg); border: 1px solid var(--border2); border-radius: 6px; padding: 5px 7px; cursor: pointer; display: flex; align-items: center; color: var(--muted); }
         .theme-btn:hover { color: var(--accent); border-color: var(--accent); }
 
@@ -283,20 +287,20 @@
             </button>
         </div>
         <div class="btn-group">
-            <button class="btn" style="color:#ffa500" onclick="clearInputs()">Reset</button>
-            <button class="btn" style="color:#00ff88" onclick="openManage()">Manage</button>
+            <button class="btn btn-reset" onclick="clearInputs()">Reset</button>
+            <button class="btn btn-manage" onclick="openManage()">Manage</button>
             <button class="btn" onclick="openHistory()">History</button>
             <button class="btn" onclick="toggleInfo()">Help</button>
         </div>
     </div>
 
     <div id="info-panel" class="hidden" style="background: #1a1a1a; padding: 12px; font-size: 10px; color: #666; border-radius: 6px; margin-bottom: 15px; line-height: 1.8;">
-        <span style="color:#00ff88; font-weight:bold;">FINDING CONTRACT SIZE IN MT5</span><br>
+        <span style="color:var(--accent); font-weight:bold;">FINDING CONTRACT SIZE IN MT5</span><br>
         1. Open MT5 → View → Symbols<br>
         2. Search your instrument (e.g. GBPUSD)<br>
         3. Select it → Properties / Specification<br>
         4. Look for <span style="color:#aaa;">Contract Size</span> — enter that value here.<br><br>
-        <span style="color:#00ff88; font-weight:bold;">USAGE</span><br>
+        <span style="color:var(--accent); font-weight:bold;">USAGE</span><br>
         · Tap result box to copy lot size.<br>
         · Lot size is rounded to 2dp by default.
     </div>
@@ -393,7 +397,7 @@
     <div class="res-container">
         <span class="lot-label">CALCULATED VOLUME</span>
         <span class="val" id="pos" onclick="copySize()" style="cursor:pointer;">0.00</span>
-        <div id="dpHint" style="display:none; font-size:9px; color:#ffa500; font-family:monospace; margin-bottom:8px; text-align:center;"></div>
+        <div id="dpHint" style="display:none; font-size:9px; color:var(--warn); font-family:monospace; margin-bottom:8px; text-align:center;"></div>
         <div class="risk-stat">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <span style="font-size:9px; color:#333; font-family:monospace; text-transform:uppercase; letter-spacing:0.5px;">View in</span>
@@ -409,7 +413,7 @@
                 </div>
             </div>
             <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
-            <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
+            <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:var(--accent)">$0.00</b></div>
         </div>
     </div>
 
@@ -575,10 +579,10 @@ function updateCcyBadge() {
     if (!badge) return;
     const entry = currencyList.find(c => c.code === accountCcy);
     if (entry) {
-        badge.style.color = '#00ff88';
+        badge.style.color = 'var(--accent)';
         badge.innerText = `✓ ${entry.code} — ${entry.name}`;
     } else if (accountCcy) {
-        badge.style.color = '#00ff88';
+        badge.style.color = 'var(--accent)';
         badge.innerText = `✓ ${accountCcy}`;
     } else {
         badge.style.color = '#555';
@@ -1002,7 +1006,7 @@ function initViewIn() {
     renderViewInList('');
     if (viewInCcy) {
         document.getElementById('viewInCcyLabel').innerText = viewInCcy;
-        document.getElementById('viewInCcyLabel').style.color = '#00ff88';
+        document.getElementById('viewInCcyLabel').style.color = 'var(--accent)';
     }
 }
 
@@ -1046,7 +1050,7 @@ async function selectViewInCcy(code) {
     const label = document.getElementById('viewInCcyLabel');
     if (code) {
         label.innerText = code;
-        label.style.color = '#00ff88';
+        label.style.color = 'var(--accent)';
     } else {
         label.innerText = 'Default';
         label.style.color = '#555';
@@ -1138,7 +1142,7 @@ async function testApiKey() {
         const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=EUR/USD&apikey=${key}`);
         const data = await res.json();
         if (data.status === 'error' || !data.rate) throw new Error(data.message || 'Invalid');
-        status.style.color = '#00ff88'; status.innerText = `✓ Valid — EUR/USD = ${parseFloat(data.rate).toFixed(5)}`;
+        status.style.color = 'var(--accent)'; status.innerText = `✓ Valid — EUR/USD = ${parseFloat(data.rate).toFixed(5)}`;
         localStorage.setItem('twelveDataKey', key);
         fxCache = {};
 
