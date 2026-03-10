@@ -633,20 +633,25 @@ function setDropdown(selectId, value) {
     const option = el.querySelector(`[data-value="${value}"]`);
     if (!option) return;
     selectState[selectId] = value;
+    localStorage.setItem(selectId, value);
     el.querySelector('.custom-select-trigger span').innerText = option.innerText;
     el.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
     option.classList.add('selected');
 }
 
 window.onload = () => {
-    inputFields.forEach(f => {
-        const saved = localStorage.getItem(f);
-        if (saved !== null && saved !== "") document.getElementById(f).value = saved;
-    });
-    const savedRisk = localStorage.getItem('riskModeSelect');
-    const savedInput = localStorage.getItem('inputModeSelect');
-    if (savedRisk) setDropdown('riskModeSelect', savedRisk);
-    if (savedInput) setDropdown('inputModeSelect', savedInput);
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (hasVisited) {
+        inputFields.forEach(f => {
+            const saved = localStorage.getItem(f);
+            if (saved !== null && saved !== "") document.getElementById(f).value = saved;
+        });
+        const savedRisk = localStorage.getItem('riskModeSelect');
+        const savedInput = localStorage.getItem('inputModeSelect');
+        if (savedRisk) setDropdown('riskModeSelect', savedRisk);
+        if (savedInput) setDropdown('inputModeSelect', savedInput);
+    }
+    localStorage.setItem('hasVisited', '1');
     toggleRisk(); toggleInput(); renderHistory();
     updateDp(); updateCcyDisplay(); fetchRate(); if (currencyList.length === 0) loadCurrencyList(); setTimeout(initViewIn, 50);
 };
@@ -688,6 +693,7 @@ function closeHistory() { document.getElementById('historyModal').classList.remo
 
 function clearInputs() {
     activeHistoryIndex = null;
+    localStorage.removeItem('hasVisited');
     inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.setItem(id, ''); });
     setDropdown('riskModeSelect', 'fixed'); selectState.riskModeSelect = 'fixed'; localStorage.removeItem('riskModeSelect');
     setDropdown('inputModeSelect', 'price'); selectState.inputModeSelect = 'price'; localStorage.removeItem('inputModeSelect');
