@@ -362,7 +362,7 @@
                     </div>
                 </div>
             </div>
-            <div><span id="riskStatLabel">EST. FIAT RISK</span>: <b id="actual">$0.00</b></div>
+            <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
             <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
         </div>
     </div>
@@ -737,8 +737,6 @@ function toggleRisk() {
     document.getElementById('percent-risk-wrap').style.display = (mode === 'percent') ? 'block' : 'none';
     document.getElementById('direct-risk-wrap').style.display = (mode === 'direct') ? 'block' : 'none';
     const isDirect = mode === 'direct';
-    document.querySelector('.lot-label').innerText = isDirect ? 'CALCULATED RISK' : 'CALCULATED VOLUME';
-    document.getElementById('riskStatLabel').innerText = isDirect ? 'ORDER SIZE' : 'EST. FIAT RISK';
     document.querySelector('.dp-wrap').style.display = isDirect ? 'none' : 'block';
 }
 
@@ -853,7 +851,7 @@ function c(skipHistory = false) {
         }
 
         if (isDirectMode) {
-            document.getElementById('pos').innerText = getCcySymbol() + parseFloat(realRisk).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('pos').innerText = roundedUpSize;
         } else {
             document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
         }
@@ -866,11 +864,7 @@ function c(skipHistory = false) {
             dpHint.style.display = 'none';
         }
         document.getElementById('actual').dataset.raw = realRisk;
-        if (isDirectMode) {
-            document.getElementById('actual').innerText = roundedUpSize + ' lots';
-        } else {
-            document.getElementById('actual').innerText = getCcySymbol() + realRisk;
-        }
+        document.getElementById('actual').innerText = getCcySymbol() + realRisk;
 
         // Profit calculation
         let profitDist = 0;
