@@ -327,7 +327,7 @@
     <div id="dist-wrap" class="hidden">
         <div class="grid">
             <div><label>Points Distance</label><input type="number" id="dist" placeholder="0.00" oninput="c()"></div>
-            <div><label>Risk : Reward</label><input type="number" id="rr" placeholder="e.g. 2 = 1:2" step="0.1" oninput="c()"></div>
+            <div><label>Reward : Risk</label><input type="text" id="rr" placeholder="e.g. 2:1" oninput="c()" inputmode="decimal"></div>
         </div>
     </div>
 
@@ -873,8 +873,17 @@ function c(skipHistory = false) {
             const entryVal = parseFloat(document.getElementById('entry').value) || 0;
             if (tpVal) profitDist = Math.abs(tpVal - entryVal);
         } else {
-            const rrVal = parseFloat(document.getElementById('rr').value);
-            if (rrVal) profitDist = dist * rrVal;
+            const rrRaw = document.getElementById('rr').value.trim();
+            let rrMultiplier = 0;
+            if (rrRaw.includes(':')) {
+                const parts = rrRaw.split(':');
+                const reward = parseFloat(parts[0]);
+                const risk = parseFloat(parts[1]);
+                if (reward > 0 && risk > 0) rrMultiplier = reward / risk;
+            } else {
+                rrMultiplier = parseFloat(rrRaw) || 0;
+            }
+            if (rrMultiplier > 0) profitDist = dist * rrMultiplier;
         }
         if (profitDist > 0) {
             const estProfit = (roundedUpSize * profitDist * mult * fxRate).toFixed(2);
