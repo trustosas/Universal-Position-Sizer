@@ -278,6 +278,7 @@
                 <div class="custom-select-options">
                     <div class="custom-select-option selected" data-value="fixed" id="fixedRiskOption" onclick="selectOption('riskModeSelect','fixed','Amount',this)">Amount</div>
                     <div class="custom-select-option" data-value="percent" onclick="selectOption('riskModeSelect','percent','% of Balance',this)">% of Balance</div>
+                    <div class="custom-select-option" data-value="direct" onclick="selectOption('riskModeSelect','direct','Direct Lots',this)">Direct Lots</div>
                 </div>
             </div>
         </div>
@@ -293,6 +294,11 @@
             <div><label id="balanceLabel">Balance</label><input type="number" id="balance" oninput="c()"></div>
             <div><label>Risk %</label><input type="number" id="pct" step="0.1" oninput="c()"></div>
         </div>
+    </div>
+
+    <div id="direct-risk-wrap" class="hidden">
+        <label>Lot Size</label>
+        <input type="number" id="directLots" placeholder="e.g. 0.10" step="0.01" oninput="c()">
     </div>
 
     <label>Input Mode</label>
@@ -356,7 +362,7 @@
                     </div>
                 </div>
             </div>
-            <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
+            <div><span id="riskStatLabel">EST. FIAT RISK</span>: <b id="actual">$0.00</b></div>
             <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:#00ff88">$0.00</b></div>
         </div>
     </div>
@@ -365,7 +371,7 @@
 </div>
 
 <script>
-const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit', 'tp', 'rr', 'dpSlider'];
+const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit', 'tp', 'rr', 'dpSlider', 'directLots'];
 const selectState = { riskModeSelect: 'fixed', inputModeSelect: 'price' };
 
 let history = JSON.parse(localStorage.getItem('tradeHistory') || "[]");
@@ -729,6 +735,11 @@ function toggleRisk() {
     const mode = selectState.riskModeSelect;
     document.getElementById('fixed-risk-wrap').style.display = (mode === 'fixed') ? 'block' : 'none';
     document.getElementById('percent-risk-wrap').style.display = (mode === 'percent') ? 'block' : 'none';
+    document.getElementById('direct-risk-wrap').style.display = (mode === 'direct') ? 'block' : 'none';
+    const isDirect = mode === 'direct';
+    document.querySelector('.lot-label').innerText = isDirect ? 'CALCULATED RISK' : 'CALCULATED VOLUME';
+    document.getElementById('riskStatLabel').innerText = isDirect ? 'ORDER SIZE' : 'EST. FIAT RISK';
+    document.querySelector('.dp-wrap').style.display = isDirect ? 'none' : 'block';
 }
 
 function toggleInput() {
@@ -789,7 +800,8 @@ function loadHistory(i) {
     document.getElementById('mult').value = item.m;
     setDropdown('riskModeSelect', item.rm); selectState.riskModeSelect = item.rm;
     if (item.rm === 'fixed') document.getElementById('cashRisk').value = item.cr;
-    else { document.getElementById('balance').value = item.bal; document.getElementById('pct').value = item.p; }
+    else if (item.rm === 'percent') { document.getElementById('balance').value = item.bal; document.getElementById('pct').value = item.p; }
+    else if (item.rm === 'direct') { document.getElementById('directLots').value = item.dl || ''; }
     setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
     if (item.im === 'dist') {
         document.getElementById('dist').value = item.d || '';
@@ -812,29 +824,53 @@ function c(skipHistory = false) {
 
     let targetRisk = (selectState.riskModeSelect === 'fixed')
         ? parseFloat(document.getElementById('cashRisk').value) || 0
-        : (parseFloat(document.getElementById('balance').value) || 0) * (parseFloat(document.getElementById('pct').value) || 0) / 100;
+        : (selectState.riskModeSelect === 'percent')
+            ? (parseFloat(document.getElementById('balance').value) || 0) * (parseFloat(document.getElementById('pct').value) || 0) / 100
+            : 0; // direct mode: we don't need targetRisk
+
+    const isDirectMode = selectState.riskModeSelect === 'direct';
+    const directLots = isDirectMode ? (parseFloat(document.getElementById('directLots').value) || 0) : 0;
 
     let dist = (selectState.inputModeSelect === 'dist')
         ? parseFloat(document.getElementById('dist').value) || 0
         : Math.abs((parseFloat(document.getElementById('entry').value) || 0) - (parseFloat(document.getElementById('exit').value) || 0));
 
-    if (dist > 0 && targetRisk > 0 && mult > 0) {
+    const hasEnoughForDirect = isDirectMode && directLots > 0 && dist > 0 && mult > 0;
+    const hasEnoughForNormal = !isDirectMode && dist > 0 && targetRisk > 0 && mult > 0;
+
+    if (hasEnoughForDirect || hasEnoughForNormal) {
         const dp = parseInt(document.getElementById('dpSlider').value);
         const factor = Math.pow(10, dp);
-        const exactSize = targetRisk / (dist * mult * fxRate);
-        const roundedUpSize = Math.round(exactSize * factor) / factor;
-        const realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
 
-        document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
-        // Warn if rounded to zero — suggest more dp
+        let roundedUpSize, realRisk;
+        if (isDirectMode) {
+            roundedUpSize = directLots;
+            realRisk = (directLots * dist * mult * fxRate).toFixed(2);
+        } else {
+            const exactSize = targetRisk / (dist * mult * fxRate);
+            roundedUpSize = Math.round(exactSize * factor) / factor;
+            realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
+        }
+
+        if (isDirectMode) {
+            document.getElementById('pos').innerText = getCcySymbol() + parseFloat(realRisk).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        } else {
+            document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
+        }
+        // Warn if rounded to zero — suggest more dp (only relevant for non-direct)
         const dpHint = document.getElementById('dpHint');
-        if (roundedUpSize > 0 && parseFloat(roundedUpSize.toFixed(dp)) === 0) {
+        if (!isDirectMode && roundedUpSize > 0 && parseFloat(roundedUpSize.toFixed(dp)) === 0) {
             dpHint.innerText = '⚠ Result too small for ' + dp + 'dp — increase precision';
             dpHint.style.display = 'block';
         } else {
             dpHint.style.display = 'none';
         }
-        document.getElementById('actual').dataset.raw = realRisk; document.getElementById('actual').innerText = getCcySymbol() + realRisk;
+        document.getElementById('actual').dataset.raw = realRisk;
+        if (isDirectMode) {
+            document.getElementById('actual').innerText = roundedUpSize + ' lots';
+        } else {
+            document.getElementById('actual').innerText = getCcySymbol() + realRisk;
+        }
 
         // Profit calculation
         let profitDist = 0;
@@ -858,7 +894,7 @@ function c(skipHistory = false) {
         clearTimeout(timeout);
         if (!skipHistory) timeout = setTimeout(() => {
             if (roundedUpSize > 0) {
-                const entry = { sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, dp: dp, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value };
+                const entry = { sym: symbol, size: isDirectMode ? directLots.toString() : roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, dp: dp, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, dl: document.getElementById('directLots').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value };
                 if (activeHistoryIndex !== null && history[activeHistoryIndex]) {
                     // Update the loaded entry in place (e.g. rate changed)
                     history[activeHistoryIndex] = entry;
