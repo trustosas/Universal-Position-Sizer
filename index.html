@@ -256,7 +256,7 @@
     </div>
 
     <label>Instrument</label>
-    <input type="text" id="symbol" placeholder="BTCUSD" oninput="showSuggestions(); fetchRate(); c();" autocomplete="off">
+    <input type="text" id="symbol" placeholder="BTCUSD" oninput="activeHistoryIndex = null; showSuggestions(); fetchRate(); c();" autocomplete="off">
     <div id="suggestions"></div>
     <div class="fx-bar">
         <span class="fx-rate" id="fxIndicator"></span>
@@ -371,6 +371,7 @@ const selectState = { riskModeSelect: 'fixed', inputModeSelect: 'price' };
 let history = JSON.parse(localStorage.getItem('tradeHistory') || "[]");
 let lib = JSON.parse(localStorage.getItem('symbolLib') || "{}");
 let fxRate = 1;
+let activeHistoryIndex = null; // tracks which history entry is currently loaded
 let fxCache = {};
 const FX_TTL = 30 * 1000; // 30s cache
 let accountCcy = localStorage.getItem('accountCcy') || 'USD';
@@ -686,6 +687,7 @@ function openHistory() { renderHistory(); document.getElementById('historyModal'
 function closeHistory() { document.getElementById('historyModal').classList.remove('open'); }
 
 function clearInputs() {
+    activeHistoryIndex = null;
     inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.setItem(id, ''); });
     setDropdown('riskModeSelect', 'fixed'); selectState.riskModeSelect = 'fixed'; localStorage.removeItem('riskModeSelect');
     setDropdown('inputModeSelect', 'price'); selectState.inputModeSelect = 'price'; localStorage.removeItem('inputModeSelect');
@@ -765,6 +767,7 @@ function renderHistory() {
 
 function loadHistory(i) {
     const item = history[i];
+    activeHistoryIndex = i;
     document.getElementById('symbol').value = item.sym;
     // Restore account currency first
     if (item.accy && item.accy !== accountCcy) {
@@ -848,14 +851,22 @@ function c(skipHistory = false) {
         clearTimeout(timeout);
         if (!skipHistory) timeout = setTimeout(() => {
             if (roundedUpSize > 0) {
-                const latest = history[0];
-                if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
-                    history.unshift({ sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, dp: dp, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value });
-                    history = history.slice(0, 10);
-                    localStorage.setItem('tradeHistory', JSON.stringify(history));
-                    renderHistory();
-                    saveSymbol();
+                const entry = { sym: symbol, size: roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, dp: dp, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value };
+                if (activeHistoryIndex !== null && history[activeHistoryIndex]) {
+                    // Update the loaded entry in place (e.g. rate changed)
+                    history[activeHistoryIndex] = entry;
+                } else {
+                    const latest = history[0];
+                    if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
+                        history.unshift(entry);
+                        history = history.slice(0, 10);
+                        activeHistoryIndex = 0;
+                        // Shift any previously tracked index down by 1 (now handled by setting to 0)
+                    }
                 }
+                localStorage.setItem('tradeHistory', JSON.stringify(history));
+                renderHistory();
+                saveSymbol();
             }
         }, 1500);
     }
