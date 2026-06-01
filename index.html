@@ -1210,6 +1210,42 @@ function exportData() {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+function importData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const payload = JSON.parse(e.target.result);
+            let symCount = 0, histCount = 0;
+            if (payload.symbols && typeof payload.symbols === 'object') {
+                Object.assign(lib, payload.symbols);
+                localStorage.setItem('symbolLib', JSON.stringify(lib));
+                symCount = Object.keys(payload.symbols).length;
+            }
+            if (Array.isArray(payload.history) && payload.history.length) {
+                const existing = JSON.parse(localStorage.getItem('tradeHistory') || '[]');
+                const merged = [...payload.history, ...existing];
+                localStorage.setItem('tradeHistory', JSON.stringify(merged));
+                history = merged;
+                histCount = payload.history.length;
+            }
+            renderLib();
+            const status = document.getElementById('importStatus');
+            status.style.color = 'var(--accent)';
+            status.innerText = `✓ Imported ${symCount} symbol${symCount !== 1 ? 's' : ''}, ${histCount} history entry${histCount !== 1 ? 'ies' : 'y'}`;
+            setTimeout(() => { status.innerText = ''; }, 4000);
+        } catch {
+            const status = document.getElementById('importStatus');
+            status.style.color = 'var(--danger)';
+            status.innerText = '✗ Invalid file';
+            setTimeout(() => { status.innerText = ''; }, 3000);
+        }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
 </script>
 <!-- History Modal -->
 <div class="modal-overlay" id="historyModal">
@@ -1262,7 +1298,12 @@ function exportData() {
             <button class="modal-add-btn" onclick="addInstrument()">+ Add</button>
         </div>
         <div class="lib-list" id="libList"></div>
-        <button class="btn" style="width:100%; border-radius:0; border:none; border-top:1px solid var(--border); color:var(--accent); padding:12px; font-size:10px; letter-spacing:1px;" onclick="exportData()">⬇ Export Symbols &amp; History</button>
+        <div id="importStatus" style="font-size:9px; font-family:monospace; padding:6px 20px 0; min-height:18px; text-align:center;"></div>
+        <div style="display:flex; border-top:1px solid var(--border);">
+            <button class="btn" style="flex:1; border-radius:0; border:none; border-right:1px solid var(--border); color:var(--accent); padding:12px; font-size:10px; letter-spacing:1px;" onclick="exportData()">⬇ Export</button>
+            <button class="btn" style="flex:1; border-radius:0; border:none; color:var(--muted); padding:12px; font-size:10px; letter-spacing:1px;" onclick="document.getElementById('importFile').click()">⬆ Import</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
     </div>
 </div>
 
