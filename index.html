@@ -57,8 +57,8 @@
         .header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         h2 { margin: 0; font-size: 10px; color: var(--muted2); letter-spacing: 1.5px; text-transform: uppercase; }
-        .btn-group { display: flex; gap: 6px; margin-bottom: 6px; }
-        .btn { background: var(--pill-bg); color: var(--muted); border: 1px solid var(--border2); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 10px; font-weight: bold; text-transform: uppercase; flex: 1; text-align: center; }
+        .btn-group { display: flex; gap: 6px; }
+        .btn { background: var(--pill-bg); color: var(--muted); border: 1px solid var(--border2); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 10px; font-weight: bold; text-transform: uppercase; flex: 1; }
         .btn:active { background: var(--accent); color: #000; }
         .btn-reset { color: var(--warn); }
         .btn-manage { color: var(--accent); }
@@ -107,4 +107,1164 @@
         .custom-select-option.selected { color: var(--accent); }
 
         #suggestions { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; scrollbar-width: none; }
-        .sug-pill { background: var(--pill-bg); color: var
+        .sug-pill { background: var(--pill-bg); color: var(--accent); border: 1px solid var(--border2); padding: 6px 12px; border-radius: 20px; font-size: 10px; cursor: pointer; white-space: nowrap; }
+
+        .fx-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; min-height: 16px; }
+        .fx-rate { font-size: 9px; font-family: monospace; color: var(--muted3); }
+        .fx-rate.active { color: var(--accent); }
+        .fx-rate.error { color: var(--danger); }
+        .fx-rate.loading { color: var(--muted); }
+        .fx-refresh { background: none; border: none; color: var(--muted); font-size: 9px; cursor: pointer; padding: 0; font-family: monospace; text-transform: uppercase; }
+        .fx-refresh:hover { color: var(--accent); }
+
+        /* Currency Search */
+        .ccy-search-wrap { position: relative; }
+        .ccy-search-input {
+            width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border2); color: var(--accent);
+            font-size: 0.95rem; border-radius: 6px; font-family: monospace; margin-top: 4px;
+        }
+        .ccy-search-input:focus { border-color: var(--accent); outline: none; }
+        .ccy-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--surface2); border: 1px solid var(--accent); border-top: none;
+            border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+            max-height: 180px; overflow-y: auto; z-index: 200;
+            display: none;
+        }
+        .ccy-dropdown.open { display: block; }
+        .ccy-option {
+            padding: 10px 12px; font-family: monospace; font-size: 0.9rem; color: var(--muted);
+            cursor: pointer; border-top: 1px solid var(--border3);
+        }
+        .ccy-option:hover { background: var(--hover-bg); color: var(--accent); }
+        .ccy-option.selected { color: var(--accent); }
+        .ccy-selected-badge {
+            display: inline-block; margin-top: 6px; padding: 4px 10px;
+            background: var(--surface3); border: 1px solid var(--border2); border-radius: 4px;
+            font-family: monospace; font-size: 11px; color: var(--accent);
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .res-container {
+            margin-top: 25px; padding: 20px; background: var(--res-grad);
+            border: 1px solid var(--border2); border-top: 3px solid var(--accent); border-radius: 8px;
+            position: relative; cursor: pointer; text-align: center; transition: 0.1s;
+        }
+        #pos:active { opacity: 0.7; }
+        .lot-label { font-size: 10px; color: var(--muted2); margin-bottom: 5px; display: block; font-weight: bold; }
+        .val { display: block; font-size: 3rem; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -1px; }
+        .risk-stat { margin-top: 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; }
+        .risk-stat b { color: var(--danger); }
+        .copy-tag { position: absolute; top: 8px; right: 12px; font-size: 8px; color: var(--border2); font-weight: bold; }
+
+        .hist-item { font-size: 11px; color: var(--muted); padding: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .hist-item b { color: var(--text); opacity: 0.6; }
+
+        .hidden { display: none; }
+
+        /* View In converter */
+        .view-in-wrap { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: block; }
+        .view-in-values { font-family: monospace; font-size: 11px; color: var(--muted); text-align: right; }
+        .view-in-values:not(.active) { visibility: hidden; }
+        .view-in-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .view-in-label { font-size: 9px; color: var(--muted2); font-family: monospace; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
+        .view-in-select-wrap { position: relative; flex-shrink: 0; }
+        .view-in-trigger {
+            background: var(--surface3); border: 1px solid var(--border2); color: var(--muted);
+            font-family: monospace; font-size: 10px; padding: 5px 10px;
+            border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: border-color 0.15s;
+        }
+        .view-in-trigger:hover { border-color: var(--accent); color: var(--accent); }
+        .view-in-options {
+            position: absolute; right: 0; bottom: calc(100% + 4px);
+            background: var(--surface2); border: 1px solid var(--accent);
+            border-radius: 6px; z-index: 200; width: 220px;
+            max-height: 200px; overflow: hidden; display: none;
+        }
+        .view-in-search {
+            width: 100%; padding: 8px 10px; background: var(--surface2); border: none;
+            border-bottom: 1px solid var(--border2); color: var(--accent); font-family: monospace;
+            font-size: 11px; outline: none;
+        }
+        .view-in-list { max-height: 155px; overflow-y: auto; }
+        .view-in-option {
+            padding: 8px 12px; font-family: monospace; font-size: 11px; color: var(--muted2);
+            cursor: pointer; border-top: 1px solid var(--border3);
+        }
+        .view-in-option:hover { background: var(--hover-bg); color: var(--accent); }
+        .view-in-option.selected { color: var(--accent); }
+        .view-in-values .viv-risk { color: var(--danger); }
+        .view-in-values .viv-profit { color: var(--accent); }
+        .view-in-loading { font-size: 9px; color: var(--muted3); font-family: monospace; }
+
+        /* Manage Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: var(--overlay);
+            z-index: 1000; justify-content: center; align-items: flex-start;
+            padding: 15px; overflow-y: auto;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; box-shadow: 0 10px 40px var(--shadow); overflow: hidden;
+            margin-top: 10px;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+        }
+        .modal-title { font-size: 10px; color: var(--muted2); letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold; }
+        .modal-close { background: none; border: none; color: var(--muted2); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; }
+        .modal-close:hover { color: var(--danger); }
+        .modal-add {
+            display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px;
+            padding: 16px 20px; border-bottom: 1px solid var(--border); align-items: end;
+        }
+        .modal-add input { padding: 10px; font-size: 0.95rem; margin-top: 0; }
+        .modal-add-btn {
+            padding: 10px 14px; background: var(--accent); color: #000; border: none;
+            border-radius: 6px; font-family: monospace; font-size: 12px; font-weight: bold;
+            cursor: pointer; white-space: nowrap; text-transform: uppercase;
+        }
+        .modal-add-btn:active { opacity: 0.8; }
+        .lib-list { max-height: 55vh; overflow-y: auto; }
+        .lib-empty { padding: 24px; text-align: center; font-size: 11px; color: var(--muted3); font-family: monospace; }
+        .lib-row {
+            display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px;
+            padding: 10px 20px; border-top: 1px solid var(--border3); align-items: center;
+        }
+        .lib-row:first-child { border-top: none; }
+        .lib-sym { font-family: monospace; font-size: 13px; color: var(--accent); font-weight: bold; }
+        .lib-size-input {
+            padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted);
+            font-size: 0.95rem; border-radius: 6px; font-family: monospace; margin-top: 0;
+            width: 100%; transition: border-color 0.15s, color 0.15s;
+        }
+        .lib-size-input:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+        .lib-del {
+            background: none; border: 1px solid var(--border2); color: var(--muted2); border-radius: 6px;
+            width: 32px; height: 32px; cursor: pointer; font-size: 14px; display: flex;
+            align-items: center; justify-content: center; transition: 0.15s; flex-shrink: 0;
+        }
+        .lib-del:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,68,68,0.06); }
+
+        /* DP Slider */
+        .dp-wrap { margin-top: 15px; }
+        .dp-header { display: flex; justify-content: space-between; align-items: center; }
+        .dp-label { color: var(--muted); font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dp-value { font-family: monospace; font-size: 11px; color: var(--accent); }
+        input[type=range] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 2px; background: var(--border2); border-radius: 2px;
+            outline: none; margin-top: 10px; cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: var(--accent); cursor: pointer; border: 2px solid var(--bg);
+            box-shadow: 0 0 6px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: var(--accent); cursor: pointer; border: 2px solid var(--bg);
+        }
+        .dp-ticks { display: flex; justify-content: space-between; margin-top: 4px; }
+        .dp-tick { font-size: 8px; color: var(--muted3); font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <div class="header">
+        <div class="header-top">
+            <h2>Universal Position Sizer</h2>
+            <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">
+                <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-reset" onclick="clearInputs()">Reset</button>
+            <button class="btn btn-manage" onclick="openManage()">Manage</button>
+            <button class="btn" onclick="openHistory()">History</button>
+            <button class="btn" onclick="toggleInfo()">Help</button>
+        </div>
+    </div>
+
+    <div id="info-panel" class="hidden" style="background: var(--surface2); border: 1px solid var(--border2); padding: 12px; font-size: 10px; color: var(--muted); border-radius: 6px; margin-bottom: 15px; line-height: 1.8;">
+        <span style="color:var(--accent); font-weight:bold;">FINDING CONTRACT SIZE IN MT5</span><br>
+        1. Open MT5 → View → Symbols<br>
+        2. Search your instrument (e.g. GBPUSD)<br>
+        3. Select it → Properties / Specification<br>
+        4. Look for <span style="color:var(--muted2);">Contract Size</span> — enter that value here.<br><br>
+        <span style="color:var(--accent); font-weight:bold;">USAGE</span><br>
+        · Tap result box to copy lot size.<br>
+        · Lot size is rounded to 2dp by default.
+    </div>
+
+    <label>Instrument</label>
+    <input type="text" id="symbol" placeholder="BTCUSD" oninput="activeHistoryIndex = null; showSuggestions(); fetchRate(); c();" autocomplete="off">
+    <div id="suggestions"></div>
+    <div class="fx-bar">
+        <span class="fx-rate" id="fxIndicator"></span>
+        <button class="fx-refresh" id="fxRefresh" onclick="fetchRate(true)" style="display:none">↻ Refresh</button>
+    </div>
+
+    <div class="grid">
+        <div>
+            <label>Contract Size</label>
+            <input type="number" id="mult" oninput="saveSymbol(); c();">
+        </div>
+        <div>
+            <label>Risk Mode</label>
+            <div class="custom-select" id="riskModeSelect">
+                <div class="custom-select-trigger" onclick="toggleDropdown('riskModeSelect')">
+                    <span id="riskModeLabel">Amount</span>
+                    <span class="custom-select-chevron">▼</span>
+                </div>
+                <div class="custom-select-options">
+                    <div class="custom-select-option selected" data-value="fixed" id="fixedRiskOption" onclick="selectOption('riskModeSelect','fixed','Amount',this)">Amount</div>
+                    <div class="custom-select-option" data-value="percent" onclick="selectOption('riskModeSelect','percent','% of Balance',this)">% of Balance</div>
+                    <div class="custom-select-option" data-value="direct" onclick="selectOption('riskModeSelect','direct','Direct Lots',this)">Direct Lots</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="fixed-risk-wrap">
+        <label id="riskAmountLabel">Risk Amount ($)</label>
+        <input type="number" id="cashRisk" oninput="c()">
+    </div>
+
+    <div id="percent-risk-wrap" class="hidden">
+        <div class="grid">
+            <div><label id="balanceLabel">Balance</label><input type="number" id="balance" oninput="c()"></div>
+            <div><label>Risk %</label><input type="number" id="pct" step="0.1" oninput="c()"></div>
+        </div>
+    </div>
+
+    <div id="direct-risk-wrap" class="hidden">
+        <label>Lot Size</label>
+        <input type="number" id="directLots" placeholder="e.g. 0.10" step="0.01" oninput="c()">
+    </div>
+
+    <label>Input Mode</label>
+    <div class="custom-select" id="inputModeSelect">
+        <div class="custom-select-trigger" onclick="toggleDropdown('inputModeSelect')">
+            <span id="inputModeLabel">Entry / Stop Loss</span>
+            <span class="custom-select-chevron">▼</span>
+        </div>
+        <div class="custom-select-options">
+            <div class="custom-select-option selected" data-value="price" onclick="selectOption('inputModeSelect','price','Entry / Stop Loss',this)">Entry / Stop Loss</div>
+            <div class="custom-select-option" data-value="dist" onclick="selectOption('inputModeSelect','dist','Point Distance',this)">Point Distance</div>
+        </div>
+    </div>
+
+    <div id="price-wrap">
+        <div class="grid">
+            <div><label>Entry</label><input type="number" id="entry" oninput="c()"></div>
+            <div><label>Stop Loss</label><input type="number" id="exit" oninput="c()"></div>
+        </div>
+        <div class="grid">
+            <div><label>Take Profit</label><input type="number" id="tp" placeholder="optional" oninput="c()"></div>
+            <div></div>
+        </div>
+    </div>
+
+    <div id="dist-wrap" class="hidden">
+        <div class="grid">
+            <div><label>Points Distance</label><input type="number" id="dist" placeholder="0.00" oninput="c()"></div>
+            <div><label>Reward : Risk</label><input type="text" id="rr" placeholder="e.g. 2:1" oninput="c()" inputmode="decimal"></div>
+        </div>
+    </div>
+
+    <div class="dp-wrap">
+        <div class="dp-header">
+            <span class="dp-label">Rounding Precision</span>
+            <span class="dp-value"><span id="dpVal">2</span> dp</span>
+        </div>
+        <input type="range" id="dpSlider" min="2" max="8" value="2" step="1" oninput="updateDp(); c(true);">
+        <div class="dp-ticks">
+            <span class="dp-tick">2</span><span class="dp-tick">3</span><span class="dp-tick">4</span>
+            <span class="dp-tick">5</span><span class="dp-tick">6</span><span class="dp-tick">7</span>
+            <span class="dp-tick">8</span>
+        </div>
+    </div>
+
+    <div class="res-container">
+        <span class="lot-label">CALCULATED VOLUME</span>
+        <span class="val" id="pos" onclick="copySize()" style="cursor:pointer;">0.00</span>
+        <div id="dpHint" style="display:none; font-size:9px; color:var(--warn); font-family:monospace; margin-bottom:8px; text-align:center;"></div>
+        <div class="risk-stat">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:9px; color:#333; font-family:monospace; text-transform:uppercase; letter-spacing:0.5px;">View in</span>
+                <div class="view-in-select-wrap" id="viewInSelectWrap">
+                    <div class="view-in-trigger" onclick="toggleViewInDropdown()">
+                        <span id="viewInCcyLabel" style="font-size:10px;">Default</span>
+                        <span style="font-size:8px; color:#444;">▼</span>
+                    </div>
+                    <div class="view-in-options" id="viewInOptions">
+                        <input type="text" class="view-in-search" id="viewInSearch" placeholder="Search..." oninput="filterViewIn()">
+                        <div class="view-in-list" id="viewInList"></div>
+                    </div>
+                </div>
+            </div>
+            <div>EST. FIAT RISK: <b id="actual">$0.00</b></div>
+            <div id="profitWrap" style="display:none; margin-top:6px;">EST. FIAT PROFIT: <b id="estProfit" style="color:var(--accent)">$0.00</b></div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+const inputFields = ['symbol', 'mult', 'cashRisk', 'balance', 'pct', 'dist', 'entry', 'exit', 'tp', 'rr', 'dpSlider', 'directLots'];
+const selectState = { riskModeSelect: 'fixed', inputModeSelect: 'price' };
+
+let history = JSON.parse(localStorage.getItem('tradeHistory') || "[]");
+let lib = JSON.parse(localStorage.getItem('symbolLib') || "{}");
+let fxRate = 1;
+let activeHistoryIndex = null; // tracks which history entry is currently loaded
+let fxCache = {};
+const FX_TTL = 30 * 1000; // 30s cache
+let accountCcy = localStorage.getItem('accountCcy') || 'USD';
+
+function getCcySymbol() {
+    const symbols = {
+        USD:'$', EUR:'€', GBP:'£', JPY:'¥', CNY:'¥', INR:'₹',
+        NGN:'₦', KRW:'₩', TRY:'₺', RUB:'₽', BRL:'R$', ZAR:'R',
+        CAD:'CA$', AUD:'A$', NZD:'NZ$', HKD:'HK$', SGD:'S$',
+        MXN:'MX$', CHF:'Fr', SEK:'kr', NOK:'kr', DKK:'kr',
+        PLN:'zł', CZK:'Kč', HUF:'Ft', RON:'lei', BGN:'лв',
+        AED:'د.إ', SAR:'﷼', KWD:'د.ك', QAR:'﷼', EGP:'E£',
+        GHS:'₵', KES:'KSh', TZS:'TSh', UGX:'USh', ZMW:'ZK',
+        IDR:'Rp', MYR:'RM', THB:'฿', PHP:'₱', VND:'₫', PKR:'₨',
+    };
+    return (symbols[accountCcy] || accountCcy + ' ');
+}
+
+function getFixedLabel() { return accountCcy + ' Amount'; }
+
+function updateCcyLabels() {
+    const sym = getCcySymbol();
+    const riskLabel = document.getElementById('riskAmountLabel');
+    if (riskLabel) riskLabel.innerText = `Risk Amount (${sym.trim() || accountCcy})`;
+    const balLabel = document.getElementById('balanceLabel');
+    if (balLabel) balLabel.innerText = `Balance (${accountCcy})`;
+    const fixedOption = document.getElementById('fixedRiskOption');
+    if (fixedOption) fixedOption.innerText = getFixedLabel();
+    if (selectState.riskModeSelect === 'fixed') {
+        const trigger = document.querySelector('#riskModeSelect .custom-select-trigger span');
+        if (trigger) trigger.innerText = getFixedLabel();
+    }
+}
+
+function updateCcyDisplay() {
+    updateCcyLabels();
+    c();
+}
+let currencyList = []; // [{code, name}]
+
+function getTwelveDataKey() {
+    return localStorage.getItem('twelveDataKey') || '';
+}
+
+function loadCurrencyList() {
+    // ISO 4217 currency list — covers all currencies Twelve Data supports
+    const currencies = [
+        {code:"AED",name:"UAE Dirham"},{code:"AFN",name:"Afghan Afghani"},{code:"ALL",name:"Albanian Lek"},
+        {code:"AMD",name:"Armenian Dram"},{code:"ANG",name:"Netherlands Antillean Guilder"},{code:"AOA",name:"Angolan Kwanza"},
+        {code:"ARS",name:"Argentine Peso"},{code:"AUD",name:"Australian Dollar"},{code:"AWG",name:"Aruban Florin"},
+        {code:"AZN",name:"Azerbaijani Manat"},{code:"BAM",name:"Bosnia-Herzegovina Convertible Mark"},{code:"BBD",name:"Barbadian Dollar"},
+        {code:"BDT",name:"Bangladeshi Taka"},{code:"BGN",name:"Bulgarian Lev"},{code:"BHD",name:"Bahraini Dinar"},
+        {code:"BIF",name:"Burundian Franc"},{code:"BMD",name:"Bermudan Dollar"},{code:"BND",name:"Brunei Dollar"},
+        {code:"BOB",name:"Bolivian Boliviano"},{code:"BRL",name:"Brazilian Real"},{code:"BSD",name:"Bahamian Dollar"},
+        {code:"BTN",name:"Bhutanese Ngultrum"},{code:"BWP",name:"Botswanan Pula"},{code:"BYN",name:"Belarusian Ruble"},
+        {code:"BZD",name:"Belize Dollar"},{code:"CAD",name:"Canadian Dollar"},{code:"CDF",name:"Congolese Franc"},
+        {code:"CHF",name:"Swiss Franc"},{code:"CLP",name:"Chilean Peso"},{code:"CNY",name:"Chinese Yuan"},
+        {code:"COP",name:"Colombian Peso"},{code:"CRC",name:"Costa Rican Colón"},{code:"CUP",name:"Cuban Peso"},
+        {code:"CVE",name:"Cape Verdean Escudo"},{code:"CZK",name:"Czech Koruna"},{code:"DJF",name:"Djiboutian Franc"},
+        {code:"DKK",name:"Danish Krone"},{code:"DOP",name:"Dominican Peso"},{code:"DZD",name:"Algerian Dinar"},
+        {code:"EGP",name:"Egyptian Pound"},{code:"ERN",name:"Eritrean Nakfa"},{code:"ETB",name:"Ethiopian Birr"},
+        {code:"EUR",name:"Euro"},{code:"FJD",name:"Fijian Dollar"},{code:"FKP",name:"Falkland Islands Pound"},
+        {code:"GBP",name:"British Pound"},{code:"GEL",name:"Georgian Lari"},{code:"GHS",name:"Ghanaian Cedi"},
+        {code:"GIP",name:"Gibraltar Pound"},{code:"GMD",name:"Gambian Dalasi"},{code:"GNF",name:"Guinean Franc"},
+        {code:"GTQ",name:"Guatemalan Quetzal"},{code:"GYD",name:"Guyanaese Dollar"},{code:"HKD",name:"Hong Kong Dollar"},
+        {code:"HNL",name:"Honduran Lempira"},{code:"HRK",name:"Croatian Kuna"},{code:"HTG",name:"Haitian Gourde"},
+        {code:"HUF",name:"Hungarian Forint"},{code:"IDR",name:"Indonesian Rupiah"},{code:"ILS",name:"Israeli New Shekel"},
+        {code:"INR",name:"Indian Rupee"},{code:"IQD",name:"Iraqi Dinar"},{code:"IRR",name:"Iranian Rial"},
+        {code:"ISK",name:"Icelandic Króna"},{code:"JMD",name:"Jamaican Dollar"},{code:"JOD",name:"Jordanian Dinar"},
+        {code:"JPY",name:"Japanese Yen"},{code:"KES",name:"Kenyan Shilling"},{code:"KGS",name:"Kyrgystani Som"},
+        {code:"KHR",name:"Cambodian Riel"},{code:"KMF",name:"Comorian Franc"},{code:"KPW",name:"North Korean Won"},
+        {code:"KRW",name:"South Korean Won"},{code:"KWD",name:"Kuwaiti Dinar"},{code:"KYD",name:"Cayman Islands Dollar"},
+        {code:"KZT",name:"Kazakhstani Tenge"},{code:"LAK",name:"Laotian Kip"},{code:"LBP",name:"Lebanese Pound"},
+        {code:"LKR",name:"Sri Lankan Rupee"},{code:"LRD",name:"Liberian Dollar"},{code:"LSL",name:"Lesotho Loti"},
+        {code:"LYD",name:"Libyan Dinar"},{code:"MAD",name:"Moroccan Dirham"},{code:"MDL",name:"Moldovan Leu"},
+        {code:"MGA",name:"Malagasy Ariary"},{code:"MKD",name:"Macedonian Denar"},{code:"MMK",name:"Myanmar Kyat"},
+        {code:"MNT",name:"Mongolian Tugrik"},{code:"MOP",name:"Macanese Pataca"},{code:"MRU",name:"Mauritanian Ouguiya"},
+        {code:"MUR",name:"Mauritian Rupee"},{code:"MVR",name:"Maldivian Rufiyaa"},{code:"MWK",name:"Malawian Kwacha"},
+        {code:"MXN",name:"Mexican Peso"},{code:"MYR",name:"Malaysian Ringgit"},{code:"MZN",name:"Mozambican Metical"},
+        {code:"NAD",name:"Namibian Dollar"},{code:"NGN",name:"Nigerian Naira"},{code:"NIO",name:"Nicaraguan Córdoba"},
+        {code:"NOK",name:"Norwegian Krone"},{code:"NPR",name:"Nepalese Rupee"},{code:"NZD",name:"New Zealand Dollar"},
+        {code:"OMR",name:"Omani Rial"},{code:"PAB",name:"Panamanian Balboa"},{code:"PEN",name:"Peruvian Sol"},
+        {code:"PGK",name:"Papua New Guinean Kina"},{code:"PHP",name:"Philippine Peso"},{code:"PKR",name:"Pakistani Rupee"},
+        {code:"PLN",name:"Polish Zloty"},{code:"PYG",name:"Paraguayan Guarani"},{code:"QAR",name:"Qatari Rial"},
+        {code:"RON",name:"Romanian Leu"},{code:"RSD",name:"Serbian Dinar"},{code:"RUB",name:"Russian Ruble"},
+        {code:"RWF",name:"Rwandan Franc"},{code:"SAR",name:"Saudi Riyal"},{code:"SBD",name:"Solomon Islands Dollar"},
+        {code:"SCR",name:"Seychellois Rupee"},{code:"SDG",name:"Sudanese Pound"},{code:"SEK",name:"Swedish Krona"},
+        {code:"SGD",name:"Singapore Dollar"},{code:"SHP",name:"Saint Helena Pound"},{code:"SLL",name:"Sierra Leonean Leone"},
+        {code:"SOS",name:"Somali Shilling"},{code:"SRD",name:"Surinamese Dollar"},{code:"STN",name:"São Tomé & Príncipe Dobra"},
+        {code:"SVC",name:"Salvadoran Colón"},{code:"SYP",name:"Syrian Pound"},{code:"SZL",name:"Swazi Lilangeni"},
+        {code:"THB",name:"Thai Baht"},{code:"TJS",name:"Tajikistani Somoni"},{code:"TMT",name:"Turkmenistani Manat"},
+        {code:"TND",name:"Tunisian Dinar"},{code:"TOP",name:"Tongan Paʻanga"},{code:"TRY",name:"Turkish Lira"},
+        {code:"TTD",name:"Trinidad & Tobago Dollar"},{code:"TWD",name:"New Taiwan Dollar"},{code:"TZS",name:"Tanzanian Shilling"},
+        {code:"UAH",name:"Ukrainian Hryvnia"},{code:"UGX",name:"Ugandan Shilling"},{code:"USD",name:"US Dollar"},
+        {code:"UYU",name:"Uruguayan Peso"},{code:"UZS",name:"Uzbekistani Som"},{code:"VES",name:"Venezuelan Bolívar"},
+        {code:"VND",name:"Vietnamese Dong"},{code:"VUV",name:"Vanuatu Vatu"},{code:"WST",name:"Samoan Tala"},
+        {code:"XAF",name:"Central African CFA Franc"},{code:"XCD",name:"East Caribbean Dollar"},
+        {code:"XOF",name:"West African CFA Franc"},{code:"XPF",name:"CFP Franc"},
+        {code:"YER",name:"Yemeni Rial"},{code:"ZAR",name:"South African Rand"},{code:"ZMW",name:"Zambian Kwacha"},
+        {code:"ZWL",name:"Zimbabwean Dollar"}
+    ];
+    currencyList = currencies;
+    renderCurrencyList('');
+}
+
+function renderCurrencyList(filter) {
+    const dropdown = document.getElementById('ccyDropdown');
+    if (!dropdown) return;
+    const f = filter.toUpperCase();
+    const filtered = f
+        ? currencyList.filter(c => c.code.includes(f) || (c.name||'').toUpperCase().includes(f))
+        : currencyList;
+    dropdown.innerHTML = filtered.slice(0, 80).map(c =>
+        `<div class="ccy-option${c.code === accountCcy ? ' selected' : ''}" onclick="selectAccountCcy('${c.code}','${(c.name||'').replace(/'/g,"\'")}')">
+            <b>${c.code}</b> — ${c.name || ''}
+        </div>`
+    ).join('');
+    updateCcyBadge();
+}
+
+function filterCurrencies() {
+    const q = document.getElementById('ccySearchInput').value;
+    openCcyDropdown();
+    renderCurrencyList(q);
+}
+
+function openCcyDropdown() {
+    document.getElementById('ccyDropdown').classList.add('open');
+}
+
+function closeCcyDropdown() {
+    document.getElementById('ccyDropdown').classList.remove('open');
+    document.getElementById('ccySearchInput').value = '';
+}
+
+function selectAccountCcy(code, name) {
+    accountCcy = code;
+    localStorage.setItem('accountCcy', code);
+    fxCache = {};
+    activeHistoryIndex = null;
+    closeCcyDropdown();
+    updateCcyBadge();
+    updateCcyDisplay();
+    fetchRate();
+}
+
+function updateCcyBadge() {
+    const badge = document.getElementById('ccySelectedBadge');
+    if (!badge) return;
+    const entry = currencyList.find(c => c.code === accountCcy);
+    if (entry) {
+        badge.style.color = 'var(--accent)';
+        badge.innerText = `✓ ${entry.code} — ${entry.name}`;
+    } else if (accountCcy) {
+        badge.style.color = 'var(--accent)';
+        badge.innerText = `✓ ${accountCcy}`;
+    } else {
+        badge.style.color = '#555';
+        badge.innerText = 'No currency selected';
+    }
+}
+
+function getQuoteCurrency(symbol) {
+    const s = symbol.replace(/[^A-Z]/g, '');
+    // Standard 6-char forex pair
+    if (s.length === 6) return s.slice(3);
+    // Common suffixes for metals/indices quoted in a known currency
+    const suffixes = ['USD','EUR','GBP','JPY','CAD','AUD','NZD','CHF'];
+    for (const sfx of suffixes) {
+        if (s.endsWith(sfx) && s.length > 3) return sfx;
+    }
+    return 'USD'; // assume USD if can't detect
+}
+
+async function fetchRate(force = false) {
+    const symbol = document.getElementById('symbol').value.toUpperCase().trim();
+    const quoteCcy = getQuoteCurrency(symbol);
+    const indicator = document.getElementById('fxIndicator');
+    const refreshBtn = document.getElementById('fxRefresh');
+
+    if (quoteCcy === accountCcy || !symbol) {
+        fxRate = 1;
+        indicator.className = 'fx-rate';
+        indicator.innerText = '';
+        refreshBtn.style.display = 'none';
+        c(); return;
+    }
+
+    const apiKey = getTwelveDataKey();
+    if (!apiKey) {
+        fxRate = 1;
+        indicator.className = 'fx-rate error';
+        indicator.innerText = `NO API KEY — set one in Manage`;
+        refreshBtn.style.display = 'none';
+        c(); return;
+    }
+
+    refreshBtn.style.display = 'block';
+
+    const cached = fxCache[quoteCcy];
+    if (!force && cached && (Date.now() - cached.ts < FX_TTL)) {
+        fxRate = cached.rate;
+        indicator.className = 'fx-rate active';
+        indicator.innerText = `FX: 1 ${quoteCcy} = ${fxRate.toFixed(5)} ${accountCcy}`;
+        c(); return;
+    }
+
+    indicator.className = 'fx-rate loading';
+    indicator.innerText = `FETCHING ${quoteCcy}/${accountCcy}...`;
+
+    try {
+        const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=${quoteCcy}/${accountCcy}&apikey=${apiKey}`);
+        const data = await res.json();
+        if (data.status === 'error' || !data.rate) throw new Error(data.message || 'No rate');
+        fxRate = parseFloat(data.rate);
+        fxCache[quoteCcy] = { rate: fxRate, ts: Date.now() };
+        indicator.className = 'fx-rate active';
+        indicator.innerText = `FX: 1 ${quoteCcy} = ${fxRate.toFixed(5)} ${accountCcy} · live`;
+    } catch (e) {
+        fxRate = 1;
+        indicator.className = 'fx-rate error';
+        indicator.innerText = `FX ERROR: ${e.message}`;
+    }
+    if (viewInCcy) fetchViewInRate().then(updateViewInDisplay);
+    c();
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.custom-select')) {
+        document.querySelectorAll('.custom-select.open').forEach(el => el.classList.remove('open'));
+    }
+    if (!e.target.closest('#ccySearchWrap')) {
+        closeCcyDropdown();
+    }
+    if (!e.target.closest('#viewInSelectWrap')) {
+        closeViewInDropdown();
+    }
+});
+
+function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.custom-select.open').forEach(d => d.classList.remove('open'));
+    if (!isOpen) el.classList.add('open');
+}
+
+function selectOption(selectId, value, label, optionEl) {
+    selectState[selectId] = value;
+    document.getElementById(selectId).querySelector('.custom-select-trigger span').innerText = label;
+    document.querySelectorAll(`#${selectId} .custom-select-option`).forEach(o => o.classList.remove('selected'));
+    optionEl.classList.add('selected');
+    document.getElementById(selectId).classList.remove('open');
+    localStorage.setItem(selectId, value);
+    if (selectId === 'riskModeSelect') toggleRisk();
+    if (selectId === 'inputModeSelect') toggleInput();
+    c();
+}
+
+function setDropdown(selectId, value) {
+    const el = document.getElementById(selectId);
+    const option = el.querySelector(`[data-value="${value}"]`);
+    if (!option) return;
+    selectState[selectId] = value;
+    localStorage.setItem(selectId, value);
+    el.querySelector('.custom-select-trigger span').innerText = option.innerText;
+    el.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+}
+
+window.onload = () => {
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (hasVisited) {
+        inputFields.forEach(f => {
+            const saved = localStorage.getItem(f);
+            if (saved !== null && saved !== "") document.getElementById(f).value = saved;
+        });
+        const savedRisk = localStorage.getItem('riskModeSelect');
+        const savedInput = localStorage.getItem('inputModeSelect');
+        if (savedRisk) setDropdown('riskModeSelect', savedRisk);
+        if (savedInput) setDropdown('inputModeSelect', savedInput);
+    }
+    localStorage.setItem('hasVisited', '1');
+    // Restore theme
+    if (localStorage.getItem('theme') === 'light') applyTheme('light');
+    toggleRisk(); toggleInput(); renderHistory();
+    updateDp(); updateCcyDisplay(); fetchRate(); if (currencyList.length === 0) loadCurrencyList(); setTimeout(initViewIn, 50);
+};
+
+function applyTheme(mode) {
+    const icon = document.getElementById('themeIcon');
+    if (mode === 'light') {
+        document.body.classList.add('light');
+        // Sun icon
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    } else {
+        document.body.classList.remove('light');
+        // Moon icon
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+}
+
+function toggleTheme() {
+    const isLight = document.body.classList.contains('light');
+    const next = isLight ? 'dark' : 'light';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+}
+
+function copySize() {
+    const val = document.getElementById('pos').innerText;
+    navigator.clipboard.writeText(val);
+    const el = document.getElementById('pos');
+    const orig = el.style.color;
+    el.style.color = '#fff';
+    setTimeout(() => { el.style.color = orig; }, 300);
+}
+
+function showSuggestions() {
+    const input = document.getElementById('symbol').value.toUpperCase();
+    const sugBox = document.getElementById('suggestions');
+    sugBox.innerHTML = '';
+    if (input.length > 0) {
+        Object.keys(lib).forEach(s => {
+            if (s.includes(input)) {
+                const pill = document.createElement('div');
+                pill.className = 'sug-pill';
+                pill.innerText = s;
+                pill.onclick = () => { document.getElementById('symbol').value = s; document.getElementById('mult').value = lib[s]; sugBox.innerHTML = ''; fetchRate(); c(); };
+                sugBox.appendChild(pill);
+            }
+        });
+    }
+}
+
+function saveSymbol() {
+    const s = document.getElementById('symbol').value.toUpperCase();
+    const m = document.getElementById('mult').value;
+    if (s && m) { lib[s] = m; localStorage.setItem('symbolLib', JSON.stringify(lib)); }
+}
+
+function openHistory() { renderHistory(); document.getElementById('historyModal').classList.add('open'); }
+function closeHistory() { document.getElementById('historyModal').classList.remove('open'); }
+
+function clearInputs() {
+    activeHistoryIndex = null;
+    localStorage.removeItem('hasVisited');
+    inputFields.forEach(id => { document.getElementById(id).value = ''; localStorage.setItem(id, ''); });
+    setDropdown('riskModeSelect', 'fixed'); selectState.riskModeSelect = 'fixed'; localStorage.removeItem('riskModeSelect');
+    setDropdown('inputModeSelect', 'price'); selectState.inputModeSelect = 'price'; localStorage.removeItem('inputModeSelect');
+    document.getElementById('dpSlider').value = 2;
+    updateDp();
+    document.getElementById('pos').innerText = '0.00';
+    document.getElementById('actual').dataset.raw = '0';
+    document.getElementById('actual').innerText = getCcySymbol() + '0.00';
+    document.getElementById('profitWrap').style.display = 'none';
+    document.getElementById('estProfit').dataset.raw = '0';
+    document.getElementById('estProfit').innerText = getCcySymbol() + '0.00';
+    // Reset View In
+    viewInCcy = '';
+    viewInRate = null;
+    localStorage.removeItem('viewInCcy');
+    const label = document.getElementById('viewInCcyLabel');
+    label.innerText = 'Default';
+    label.style.color = '#555';
+    renderViewInList('');
+    toggleRisk(); toggleInput();
+}
+
+function deleteHistory(i) {
+    history.splice(i, 1);
+    localStorage.setItem('tradeHistory', JSON.stringify(history));
+    renderHistory();
+}
+
+function clearHistory() { if(confirm("Wipe history?")) { history = []; localStorage.setItem('tradeHistory', JSON.stringify(history)); renderHistory(); } }
+
+function toggleRisk() {
+    const mode = selectState.riskModeSelect;
+    document.getElementById('fixed-risk-wrap').style.display = (mode === 'fixed') ? 'block' : 'none';
+    document.getElementById('percent-risk-wrap').style.display = (mode === 'percent') ? 'block' : 'none';
+    document.getElementById('direct-risk-wrap').style.display = (mode === 'direct') ? 'block' : 'none';
+    const isDirect = mode === 'direct';
+    document.querySelector('.dp-wrap').style.display = isDirect ? 'none' : 'block';
+}
+
+function toggleInput() {
+    const mode = selectState.inputModeSelect;
+    document.getElementById('price-wrap').style.display = (mode === 'price') ? 'block' : 'none';
+    document.getElementById('dist-wrap').style.display = (mode === 'dist') ? 'block' : 'none';
+}
+
+function renderHistory() {
+    const list = document.getElementById('hist-list');
+    list.innerHTML = '';
+    history.forEach((h, i) => {
+        // Build entry/stop line depending on input mode
+        let priceInfo = '';
+        if (h.im === 'dist') {
+            if (h.d) priceInfo = `<span style="color:#333; font-size:10px;">DIST ${h.d}</span>`;
+        } else {
+            const parts = [];
+            if (h.en) parts.push(`E:${h.en}`);
+            if (h.ex) parts.push(`SL:${h.ex}`);
+            if (h.tp) parts.push(`TP:${h.tp}`);
+            if (parts.length) priceInfo = `<span style="color:#333; font-size:10px;">${parts.join(' · ')}</span>`;
+        }
+        const div = document.createElement('div');
+        div.className = 'hist-item';
+        div.style.gap = '8px';
+        div.innerHTML = `
+            <span style="flex:1; cursor:pointer; line-height:1.6;" onclick="loadHistory(${i}); closeHistory();">
+                <span style="display:flex; justify-content:space-between; align-items:baseline;">
+                    <b>${h.sym || '??'}</b>
+                    <span style="color:#888; font-size:12px;">${h.size} lots</span>
+                </span>
+                <span style="display:flex; justify-content:space-between; align-items:baseline; margin-top:2px;">
+                    ${priceInfo}
+                    <span style="color:#444; font-size:10px;">${h.ccy || '$'}${h.risk} risk</span>
+                </span>
+            </span>
+            <button onclick="deleteHistory(${i})" style="background:none; border:1px solid #222; color:#444; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:12px; flex-shrink:0; transition:0.15s;" onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444'" onmouseout="this.style.borderColor='#222';this.style.color='#444'">✕</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function loadHistory(i) {
+    const item = history[i];
+    activeHistoryIndex = i;
+    document.getElementById('symbol').value = item.sym;
+    // Restore account currency first
+    if (item.accy && item.accy !== accountCcy) {
+        accountCcy = item.accy;
+        localStorage.setItem('accountCcy', accountCcy);
+        fxCache = {};
+        viewInCache = {};
+        updateCcyLabels();
+        updateCcyBadge();
+    }
+    document.getElementById('symbol').value = item.sym;
+    document.getElementById('mult').value = item.m;
+    setDropdown('riskModeSelect', item.rm); selectState.riskModeSelect = item.rm;
+    if (item.rm === 'fixed') document.getElementById('cashRisk').value = item.cr;
+    else if (item.rm === 'percent') { document.getElementById('balance').value = item.bal; document.getElementById('pct').value = item.p; }
+    else if (item.rm === 'direct') { document.getElementById('directLots').value = item.dl || ''; }
+    setDropdown('inputModeSelect', item.im); selectState.inputModeSelect = item.im;
+    if (item.im === 'dist') {
+        document.getElementById('dist').value = item.d || '';
+        document.getElementById('rr').value = item.rr || '';
+    } else {
+        document.getElementById('entry').value = item.en || '';
+        document.getElementById('exit').value = item.ex || '';
+        document.getElementById('tp').value = item.tp || '';
+    }
+    document.getElementById('dpSlider').value = item.dp || 2;
+    updateDp();
+    toggleRisk(); toggleInput(); fetchRate();
+}
+
+let timeout;
+function c(skipHistory = false) {
+    const mult = parseFloat(document.getElementById('mult').value) || 0;
+    const symbol = document.getElementById('symbol').value.toUpperCase();
+    inputFields.forEach(f => localStorage.setItem(f, document.getElementById(f).value));
+
+    let targetRisk = (selectState.riskModeSelect === 'fixed')
+        ? parseFloat(document.getElementById('cashRisk').value) || 0
+        : (selectState.riskModeSelect === 'percent')
+            ? (parseFloat(document.getElementById('balance').value) || 0) * (parseFloat(document.getElementById('pct').value) || 0) / 100
+            : 0; // direct mode: we don't need targetRisk
+
+    const isDirectMode = selectState.riskModeSelect === 'direct';
+    const directLots = isDirectMode ? (parseFloat(document.getElementById('directLots').value) || 0) : 0;
+
+    let dist = (selectState.inputModeSelect === 'dist')
+        ? parseFloat(document.getElementById('dist').value) || 0
+        : Math.abs((parseFloat(document.getElementById('entry').value) || 0) - (parseFloat(document.getElementById('exit').value) || 0));
+
+    const hasEnoughForDirect = isDirectMode && directLots > 0 && dist > 0 && mult > 0;
+    const hasEnoughForNormal = !isDirectMode && dist > 0 && targetRisk > 0 && mult > 0;
+
+    if (hasEnoughForDirect || hasEnoughForNormal) {
+        const dp = parseInt(document.getElementById('dpSlider').value);
+        const factor = Math.pow(10, dp);
+
+        let roundedUpSize, realRisk;
+        if (isDirectMode) {
+            roundedUpSize = directLots;
+            realRisk = (directLots * dist * mult * fxRate).toFixed(2);
+        } else {
+            const exactSize = targetRisk / (dist * mult * fxRate);
+            roundedUpSize = Math.round(exactSize * factor) / factor;
+            realRisk = (roundedUpSize * dist * mult * fxRate).toFixed(2);
+        }
+
+        if (isDirectMode) {
+            document.getElementById('pos').innerText = roundedUpSize;
+        } else {
+            document.getElementById('pos').innerText = roundedUpSize.toFixed(dp);
+        }
+        // Warn if rounded to zero — suggest more dp (only relevant for non-direct)
+        const dpHint = document.getElementById('dpHint');
+        if (!isDirectMode && roundedUpSize > 0 && parseFloat(roundedUpSize.toFixed(dp)) === 0) {
+            dpHint.innerText = '⚠ Result too small for ' + dp + 'dp — increase precision';
+            dpHint.style.display = 'block';
+        } else {
+            dpHint.style.display = 'none';
+        }
+        document.getElementById('actual').dataset.raw = realRisk;
+        document.getElementById('actual').innerText = getCcySymbol() + realRisk;
+
+        // Profit calculation
+        let profitDist = 0;
+        if (selectState.inputModeSelect === 'price') {
+            const tpVal = parseFloat(document.getElementById('tp').value);
+            const entryVal = parseFloat(document.getElementById('entry').value) || 0;
+            if (tpVal) profitDist = Math.abs(tpVal - entryVal);
+        } else {
+            const rrRaw = document.getElementById('rr').value.trim();
+            let rrMultiplier = 0;
+            if (rrRaw.includes(':')) {
+                const parts = rrRaw.split(':');
+                const reward = parseFloat(parts[0]);
+                const risk = parseFloat(parts[1]);
+                if (reward > 0 && risk > 0) rrMultiplier = reward / risk;
+            } else {
+                rrMultiplier = parseFloat(rrRaw) || 0;
+            }
+            if (rrMultiplier > 0) profitDist = dist * rrMultiplier;
+        }
+        if (profitDist > 0) {
+            const estProfit = (roundedUpSize * profitDist * mult * fxRate).toFixed(2);
+            document.getElementById('estProfit').dataset.raw = estProfit; document.getElementById('estProfit').innerText = getCcySymbol() + estProfit;
+            document.getElementById('profitWrap').style.display = 'inline';
+        } else {
+            document.getElementById('profitWrap').style.display = 'none';
+        }
+        updateViewInDisplay();
+
+        clearTimeout(timeout);
+        if (!skipHistory) timeout = setTimeout(() => {
+            if (roundedUpSize > 0) {
+                const entry = { sym: symbol, size: isDirectMode ? directLots.toString() : roundedUpSize.toFixed(dp), risk: realRisk, ccy: getCcySymbol(), accy: accountCcy, dp: dp, m: mult, rm: selectState.riskModeSelect, im: selectState.inputModeSelect, cr: document.getElementById('cashRisk').value, bal: document.getElementById('balance').value, p: document.getElementById('pct').value, dl: document.getElementById('directLots').value, d: document.getElementById('dist').value, rr: document.getElementById('rr').value, en: document.getElementById('entry').value, ex: document.getElementById('exit').value, tp: document.getElementById('tp').value };
+                if (activeHistoryIndex !== null && history[activeHistoryIndex]) {
+                    // Update the loaded entry in place (e.g. rate changed)
+                    history[activeHistoryIndex] = entry;
+                } else {
+                    const latest = history[0];
+                    if (!latest || latest.size !== roundedUpSize.toFixed(dp) || latest.sym !== symbol) {
+                        history.unshift(entry);
+                        history = history.slice(0, 10);
+                        activeHistoryIndex = 0;
+                        // Shift any previously tracked index down by 1 (now handled by setting to 0)
+                    }
+                }
+                localStorage.setItem('tradeHistory', JSON.stringify(history));
+                renderHistory();
+                saveSymbol();
+            }
+        }, 1500);
+    }
+}
+
+function updateDp() {
+    const dp = parseInt(document.getElementById('dpSlider').value);
+    document.getElementById('dpVal').innerText = dp;
+}
+
+function toggleInfo() { document.getElementById('info-panel').classList.toggle('hidden'); }
+
+// ── View In Converter ──────────────────────────────────────────
+let viewInCcy = localStorage.getItem('viewInCcy') || '';
+let viewInRate = null;
+let viewInCache = {};
+
+function initViewIn() {
+    renderViewInList('');
+    if (viewInCcy) {
+        document.getElementById('viewInCcyLabel').innerText = viewInCcy;
+        document.getElementById('viewInCcyLabel').style.color = 'var(--accent)';
+    }
+}
+
+function renderViewInList(filter) {
+    const list = document.getElementById('viewInList');
+    const f = filter.toUpperCase();
+    const filtered = f
+        ? currencyList.filter(c => c.code.includes(f) || (c.name||'').toUpperCase().includes(f))
+        : currencyList;
+    const defaultOpt = `<div class="view-in-option${!viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('')">Default</div>`;
+    list.innerHTML = defaultOpt + filtered.slice(0, 80).map(c =>
+        `<div class="view-in-option${c.code === viewInCcy ? ' selected' : ''}" onclick="selectViewInCcy('${c.code}')">${c.code} — ${c.name}</div>`
+    ).join('');
+}
+
+function filterViewIn() {
+    renderViewInList(document.getElementById('viewInSearch').value);
+}
+
+function toggleViewInDropdown() {
+    const opts = document.getElementById('viewInOptions');
+    const isOpen = opts.style.display === 'block';
+    // close all other dropdowns
+    document.querySelectorAll('.custom-select.open').forEach(el => el.classList.remove('open'));
+    opts.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) {
+        document.getElementById('viewInSearch').value = '';
+        renderViewInList('');
+        setTimeout(() => document.getElementById('viewInSearch').focus(), 50);
+    }
+}
+
+function closeViewInDropdown() {
+    document.getElementById('viewInOptions').style.display = 'none';
+}
+
+async function selectViewInCcy(code) {
+    viewInCcy = code;
+    if (code) localStorage.setItem('viewInCcy', code);
+    else localStorage.removeItem('viewInCcy');
+    const label = document.getElementById('viewInCcyLabel');
+    if (code) {
+        label.innerText = code;
+        label.style.color = 'var(--accent)';
+    } else {
+        label.innerText = 'Default';
+        label.style.color = '#555';
+    }
+    closeViewInDropdown();
+    renderViewInList('');
+    if (code) {
+        await fetchViewInRate();
+        updateViewInDisplay();
+    } else {
+        viewInRate = null;
+        const riskRaw = document.getElementById('actual').dataset.raw;
+        const profitRaw = document.getElementById('estProfit').dataset.raw;
+        if (riskRaw) document.getElementById('actual').innerText = getCcySymbol() + parseFloat(riskRaw).toFixed(2);
+        const profitWrap = document.getElementById('profitWrap');
+        if (profitRaw && profitWrap && profitWrap.style.display !== 'none') {
+            document.getElementById('estProfit').innerText = getCcySymbol() + parseFloat(profitRaw).toFixed(2);
+        }
+    }
+}
+
+async function fetchViewInRate() {
+    if (!viewInCcy) return;
+    const from = accountCcy;
+    const to = viewInCcy;
+    if (from === to) { viewInRate = 1; return; }
+    const key = `${from}/${to}`;
+    const cached = viewInCache[key];
+    if (cached && (Date.now() - cached.ts < FX_TTL)) { viewInRate = cached.rate; return; }
+    const apiKey = getTwelveDataKey();
+    if (!apiKey) { viewInRate = null; return; }
+    try {
+        const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=${from}/${to}&apikey=${apiKey}`);
+        const data = await res.json();
+        if (data.status === 'error' || !data.rate) throw new Error();
+        viewInRate = parseFloat(data.rate);
+        viewInCache[key] = { rate: viewInRate, ts: Date.now() };
+    } catch(e) { viewInRate = null; }
+}
+
+function getViewInSym(code) {
+    const s = {USD:'$',EUR:'€',GBP:'£',JPY:'¥',NGN:'₦',GHS:'₵',KES:'KSh',ZAR:'R',INR:'₹',CNY:'¥',
+               CAD:'CA$',AUD:'A$',BRL:'R$',CHF:'Fr',MXN:'MX$',SGD:'S$',HKD:'HK$',TRY:'₺',RUB:'₽',KRW:'₩'};
+    return s[code] || (code + ' ');
+}
+
+function updateViewInDisplay() {
+    if (!viewInCcy || !viewInRate) return;
+    const sym = getViewInSym(viewInCcy);
+
+    const riskRaw = parseFloat(document.getElementById('actual').dataset.raw || '0');
+    if (riskRaw > 0) {
+        const conv = (riskRaw * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
+        document.getElementById('actual').innerText = sym + conv;
+    }
+
+    const profitWrap = document.getElementById('profitWrap');
+    if (profitWrap && profitWrap.style.display !== 'none') {
+        const profitRaw = parseFloat(document.getElementById('estProfit').dataset.raw || '0');
+        if (profitRaw > 0) {
+            const convP = (profitRaw * viewInRate).toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('estProfit').innerText = sym + convP;
+        }
+    }
+}
+
+function openManage() {
+    document.getElementById('apiKeyInput').value = getTwelveDataKey();
+    document.getElementById('apiKeyStatus').innerText = '';
+    renderLib();
+    document.getElementById('manageModal').classList.add('open');
+    if (currencyList.length === 0) loadCurrencyList();
+    else { renderCurrencyList(''); }
+    updateCcyBadge();
+}
+
+function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    localStorage.setItem('twelveDataKey', key);
+    fxCache = {};
+}
+
+async function testApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    const status = document.getElementById('apiKeyStatus');
+    if (!key) { status.style.color = '#ff4444'; status.innerText = 'Enter a key first.'; return; }
+    status.style.color = '#555'; status.innerText = 'TESTING...';
+    try {
+        const res = await fetch(`https://api.twelvedata.com/exchange_rate?symbol=EUR/USD&apikey=${key}`);
+        const data = await res.json();
+        if (data.status === 'error' || !data.rate) throw new Error(data.message || 'Invalid');
+        status.style.color = 'var(--accent)'; status.innerText = `✓ Valid — EUR/USD = ${parseFloat(data.rate).toFixed(5)}`;
+        localStorage.setItem('twelveDataKey', key);
+        fxCache = {};
+
+    } catch (e) {
+        status.style.color = '#ff4444'; status.innerText = `✗ ${e.message}`;
+    }
+}
+function closeManage() { document.getElementById('manageModal').classList.remove('open'); }
+
+function renderLib() {
+    const list = document.getElementById('libList');
+    const keys = Object.keys(lib).sort();
+    if (keys.length === 0) {
+        list.innerHTML = '<div class="lib-empty">NO INSTRUMENTS SAVED YET</div>';
+        return;
+    }
+    list.innerHTML = '';
+    keys.forEach(sym => {
+        const row = document.createElement('div');
+        row.className = 'lib-row';
+        row.innerHTML = `
+            <span class="lib-sym">${sym}</span>
+            <input class="lib-size-input" type="number" value="${lib[sym]}" onchange="updateInstrument('${sym}', this.value)" oninput="updateInstrument('${sym}', this.value)">
+            <button class="lib-del" onclick="deleteInstrument('${sym}')">✕</button>
+        `;
+        list.appendChild(row);
+    });
+}
+
+function addInstrument() {
+    const sym = document.getElementById('newSym').value.trim().toUpperCase();
+    const mult = document.getElementById('newMult').value.trim();
+    if (!sym || !mult || isNaN(parseFloat(mult))) return;
+    lib[sym] = mult;
+    localStorage.setItem('symbolLib', JSON.stringify(lib));
+    document.getElementById('newSym').value = '';
+    document.getElementById('newMult').value = '';
+    renderLib();
+}
+
+function updateInstrument(sym, val) {
+    if (!val || isNaN(parseFloat(val))) return;
+    lib[sym] = val;
+    localStorage.setItem('symbolLib', JSON.stringify(lib));
+}
+
+function deleteInstrument(sym) {
+    delete lib[sym];
+    localStorage.setItem('symbolLib', JSON.stringify(lib));
+    renderLib();
+}
+
+function exportData() {
+    const payload = {
+        exported: new Date().toISOString(),
+        symbols: lib,
+        history: JSON.parse(localStorage.getItem('tradeHistory') || '[]')
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const date = new Date().toISOString().slice(0, 10);
+    a.download = `position-sizer-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+<!-- History Modal -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">History Log</span>
+            <button class="modal-close" onclick="closeHistory()">✕</button>
+        </div>
+        <div class="lib-list" id="hist-list"></div>
+        <button class="btn" style="width:100%; border-radius:0; border:none; border-top:1px solid #1a1a1a; color:#ff4444; padding:12px;" onclick="clearHistory()">Wipe Log</button>
+    </div>
+</div>
+
+<!-- Manage Modal -->
+<div class="modal-overlay" id="manageModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">Instrument Library</span>
+            <button class="modal-close" onclick="closeManage()">✕</button>
+        </div>
+        <div style="padding: 14px 20px; border-bottom: 1px solid #1a1a1a;">
+            <label style="margin-top:0">Twelve Data API Key</label>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+                <input type="text" id="apiKeyInput" placeholder="your_api_key_here" autocomplete="off"
+                    style="font-size:0.85rem; padding:10px; letter-spacing:0.5px; color:#888;"
+                    oninput="saveApiKey()">
+                <button class="modal-add-btn" style="white-space:nowrap" onclick="testApiKey()">Test</button>
+            </div>
+            <div id="apiKeyStatus" style="font-size:9px; font-family:monospace; color:#333; margin-top:6px; min-height:12px;"></div>
+        </div>
+        <div style="padding: 14px 20px; border-bottom: 1px solid #1a1a1a;">
+            <label style="margin-top:0">Account Currency</label>
+            <div class="ccy-search-wrap" id="ccySearchWrap">
+                <input type="text" class="ccy-search-input" id="ccySearchInput"
+                    placeholder="Search currency (e.g. NGN, EUR...)"
+                    oninput="filterCurrencies()" onfocus="openCcyDropdown()" autocomplete="off">
+                <div class="ccy-dropdown" id="ccyDropdown"></div>
+            </div>
+            <div id="ccySelectedBadge" style="margin-top:6px; font-size:9px; font-family:monospace; color:#555;">LOADING CURRENCIES...</div>
+        </div>
+        <div class="modal-add">
+            <div>
+                <label style="margin-top:0">Symbol</label>
+                <input type="text" id="newSym" placeholder="EURUSD" autocomplete="off" style="text-transform:uppercase">
+            </div>
+            <div>
+                <label style="margin-top:0">Contract Size</label>
+                <input type="number" id="newMult" placeholder="100000">
+            </div>
+            <button class="modal-add-btn" onclick="addInstrument()">+ Add</button>
+        </div>
+        <div class="lib-list" id="libList"></div>
+        <button class="btn" style="width:100%; border-radius:0; border:none; border-top:1px solid var(--border); color:var(--accent); padding:12px; font-size:10px; letter-spacing:1px;" onclick="exportData()">⬇ Export Symbols &amp; History</button>
+    </div>
+</div>
+
+
+</html>
